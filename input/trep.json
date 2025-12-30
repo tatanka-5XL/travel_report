@@ -1,0 +1,115 @@
+{
+    "report_id": "PC-2025-03-014",
+    "year": "2025",
+    "employee": {
+        "name": "Petr Přibil",
+        "company": "ProfiSolv, s.r.o.",
+        "position": "Sales Engineer, Owner"
+        },
+    "bank_rates": {
+        "start_date": "0312",
+        "currencies":[
+            {
+                "code": "CZK",
+                "exchange_rate": 1
+            },
+            {
+                "code": "EUR",
+                "exchange_rate": 25.145
+            }
+            ]
+        },
+    "trip_info": {
+        "trip_number": 110,
+        "Trip description": "PASS PL visit and trials support",
+        "Target locations": "Sanok PL",
+        "transport": {
+            "mode": "Company car",
+            "vehicle_registration": "3BF 3078"
+            },
+        "countries": ["CZ", "SK", "PL"],
+        "number_of_days": 3,
+        "start": {
+            "date": "0312",
+            "time": "0630",
+            "country": "CZ",
+            "dplace": "Dolni Bojanovice"
+            },
+        "end": {
+            "date": "0314",
+            "time":"2000",
+            "country": "CZ",
+            "place": "Dolni Bojanovice"
+            }
+        },
+    "time_log": {
+        "0312": {
+            "segments":[
+                {
+                    "country": "CZ",
+                    "border_crossing_time": "0630",
+                    "border_crossing_place": "Dolni Bojanovice",
+                    "number_of_meals": 0
+                },
+                {
+                    "country": "SK",
+                    "border_crossing_time": "0700",
+                    "border_crossing_place": "Holic",
+                    "number_of_meals": 0
+                },
+                {
+                    "country": "PL",
+                    "border_crossing_time": "1400",
+                    "border_crossing_place": "Barwinek",
+                    "number_of_meals": 0
+                }
+                ]
+            },
+        "0313": {
+            "segments":[
+                {
+                    "country": "PL",
+                    "border_crossing_time": "NoCross",
+                    "border_crossing_place": "Sanok",
+                    "number_of_meals": 1
+                }
+                ]
+            },
+        "0314": {
+            "segments":[
+                {
+                    "country": "PL",
+                    "border_crossing_time": "NoCross",
+                    "border_crossing_place": "Sanok",
+                    "number_of_meals": 1
+                },
+                {
+                    "country": "SK",
+                    "border_crossing_time": "1200",
+                    "border_crossing_place": "Barwinek",
+                    "number_of_meals": 0
+                },
+                {
+                    "country": "CZ",
+                    "border_crossing_time": "1930",
+                    "border_crossing_place": "Holic",
+                    "number_of_meals": 0
+                }
+                ]
+            },
+        "bills": [{
+            "type": "accomodation",
+            "date": "2025-3-14",
+            "currency": "PLN",
+            "amount": 500,
+            "note": "Hotel Sanok 2 nights"
+            },
+            {
+            "type": "restaurant",
+            "currency": "PLN",
+            "amount": 150,
+            "note": "Dinner with client"
+            }
+        ]
+    }
+}
