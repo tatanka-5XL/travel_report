@@ -42,7 +42,7 @@
             "place": "Dolni Bojanovice"
             }
         },
-    "time_log": {
+    "daily_schedule": [{
         "0312": {
             "segments":[
                 {
@@ -96,20 +96,20 @@
                     "number_of_meals": 0
                 }
                 ]
-            },
-        "bills": [{
-            "type": "accomodation",
-            "date": "2025-3-14",
-            "currency": "PLN",
-            "amount": 500,
-            "note": "Hotel Sanok 2 nights"
-            },
-            {
-            "type": "restaurant",
-            "currency": "PLN",
-            "amount": 150,
-            "note": "Dinner with client"
-            }
-        ]
-    }
+        }
+    }],
+    "bills": [{
+        "type": "accomodation",
+        "date": "2025-3-14",
+        "currency": "PLN",
+        "amount": 500,
+        "note": "Hotel Sanok 2 nights"
+        },
+        {
+        "type": "restaurant",
+        "currency": "PLN",
+        "amount": 150,
+        "note": "Dinner with client"
+        }
+    ]
 }

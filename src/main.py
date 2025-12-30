@@ -29,7 +29,10 @@ print(start_iso)
 print(end_iso)
 
 
-# First segment
+# First day
+for day in json_file_data["daily_schedule"]:
+    print(day)
+    print("XXXXXXXX\n")
 
 
 # Get the difference between times
