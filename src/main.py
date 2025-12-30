@@ -25,14 +25,24 @@ end_dt = datetime.strptime(
 end_iso = end_dt.strftime("%Y-%m-%dT%H:%M")
 
 
-print(start_iso)
-print(end_iso)
+# print(start_iso)
+# print(end_iso)
 
+time_log = []
+time_log.append([start_iso, json_file_data["trip_info"]["start"]
+                ["country"], json_file_data["trip_info"]["start"]["place"]])
+
+print("Trip started in " + time_log[0][2] + " in " +
+      time_log[0][1] + " at " + time_log[0][0] + ".")
+
+for log in time_log:
+    for item in log:
+        print(item)
 
 # First day
 for day in json_file_data["daily_schedule"]:
-    print(day)
-    print("XXXXXXXX\n")
+    for key, value in day.items():
+        print(key)
 
 
 # Get the difference between times
