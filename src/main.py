@@ -24,26 +24,36 @@ end_dt = datetime.strptime(
     f"{year}{end_date}{end_time}", "%Y%m%d%H%M")
 end_iso = end_dt.strftime("%Y-%m-%dT%H:%M")
 
-
-# print(start_iso)
-# print(end_iso)
-
+# VarA Create time log for every segment?
 time_log = []
 time_log.append([start_iso, json_file_data["trip_info"]["start"]
                 ["country"], json_file_data["trip_info"]["start"]["place"]])
 
-print("Trip started in " + time_log[0][2] + " in " +
-      time_log[0][1] + " at " + time_log[0][0] + ".")
+#print("Trip started in " + time_log[0][2] + " in " +
+#      time_log[0][1] + " at " + time_log[0][0] + ".")
 
-for log in time_log:
-    for item in log:
-        print(item)
+#for log in time_log:
+#    for item in log:
+#        print(item)
 
-# First day
-for day in json_file_data["daily_schedule"]:
-    for key, value in day.items():
-        print(key)
+# VarB Border crossing identification?
+print("Trip started in " + json_file_data["trip_info"]["start"]
+                ["country"] + " in " +
+      json_file_data["trip_info"]["start"]["place"] + " at " + start_iso + ".")
 
+
+for day in json_file_data["segments"]:
+    for segment in day:
+        if segment["border_cross_time"] == "no_cross":
+            # calculate perdiems
+            continue
+        
+
+
+
+# create 2 functions:
+# def calculate_perdiems_cz():
+# def calculate_perdiems_abroad():
 
 # Get the difference between times
 start = datetime.fromisoformat("2025-03-12T06:30")

@@ -42,62 +42,56 @@
             "place": "Dolni Bojanovice"
             }
         },
-    "daily_schedule": [{
-        "0312": {
-            "segments":[
+    "segments": [
+        {
+        "0312": [
                 {
                     "country": "CZ",
-                    "border_crossing_time": "0630",
-                    "border_crossing_place": "Dolni Bojanovice",
+                    "border_cross_time": "no_cross",
+                    "border_cross_place": "no_cross",
                     "number_of_meals": 0
                 },
                 {
                     "country": "SK",
-                    "border_crossing_time": "0700",
-                    "border_crossing_place": "Holic",
+                    "border_cross_time": "0700",
+                    "border_cross_place": "Holic",
                     "number_of_meals": 0
                 },
                 {
                     "country": "PL",
-                    "border_crossing_time": "1400",
-                    "border_crossing_place": "Barwinek",
+                    "border_cross_time": "1400",
+                    "border_cross_place": "Barwinek",
                     "number_of_meals": 0
-                }
-                ]
-            },
-        "0313": {
-            "segments":[
+                }]},
+        {        
+        "0313": [
                 {
                     "country": "PL",
-                    "border_crossing_time": "NoCross",
-                    "border_crossing_place": "Sanok",
+                    "border_cross_time": "no_cross",
+                    "border_cross_place": "Sanok",
                     "number_of_meals": 1
-                }
-                ]
-            },
-        "0314": {
-            "segments":[
+                }]},
+        {
+        "0314": [
                 {
                     "country": "PL",
-                    "border_crossing_time": "NoCross",
-                    "border_crossing_place": "Sanok",
+                    "border_cross_time": "no_cross",
+                    "border_cross_place": "Sanok",
                     "number_of_meals": 1
                 },
                 {
                     "country": "SK",
-                    "border_crossing_time": "1200",
-                    "border_crossing_place": "Barwinek",
+                    "border_cross_time": "1200",
+                    "border_cross_place": "Barwinek",
                     "number_of_meals": 0
                 },
                 {
                     "country": "CZ",
-                    "border_crossing_time": "1930",
-                    "border_crossing_place": "Holic",
+                    "border_cross_time": "1930",
+                    "border_cross_place": "Holic",
                     "number_of_meals": 0
-                }
-                ]
-        }
-    }],
+                }]}
+            ],
     "bills": [{
         "type": "accomodation",
         "date": "2025-3-14",
