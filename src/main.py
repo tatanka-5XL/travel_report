@@ -29,29 +29,30 @@ time_log = []
 time_log.append([start_iso, json_file_data["trip_info"]["start"]
                 ["country"], json_file_data["trip_info"]["start"]["place"]])
 
-#print("Trip started in " + time_log[0][2] + " in " +
+# print("Trip started in " + time_log[0][2] + " in " +
 #      time_log[0][1] + " at " + time_log[0][0] + ".")
 
-#for log in time_log:
+# for log in time_log:
 #    for item in log:
 #        print(item)
 
 # VarB Border crossing identification?
 print("Trip started in " + json_file_data["trip_info"]["start"]
-                ["country"] + " in " +
+      ["country"] + " in " +
       json_file_data["trip_info"]["start"]["place"] + " at " + start_iso + ".")
 
 
 for day in json_file_data["segments"]:
-    for segment in day:
-        if segment["border_cross_time"] == "no_cross":
+    for day, seg_list in day.items():
+        if seg_list["border_cross_time"] == "no_cross":
             # calculate perdiems
             continue
-        
+        if segment.value().len() <= 1:
+            print("None or one segment only in ." + segment.key())
+            continue
 
-
-
-# create 2 functions:
+# create functions:
+# def check_time_input ("ddmm")
 # def calculate_perdiems_cz():
 # def calculate_perdiems_abroad():
 
