@@ -47,8 +47,8 @@ for day in json_file_data["segments"]:
         if seg_list["border_cross_time"] == "no_cross":
             # calculate perdiems
             continue
-        if segment.value().len() <= 1:
-            print("None or one segment only in ." + segment.key())
+        if seg_list.len() <= 1:
+            print("None or one segment only in " + day + ".")
             continue
 
 # create functions:
