@@ -26,62 +26,78 @@
         "transport": {
             "mode": "Company car",
             "vehicle_registration": "3BF 3078"
-            },
-        "countries": ["CZ", "SK", "PL"],
-        "number_of_days": 3,
-        "start": {
-            "datetime": "03120630",
-            "country": "CZ",
-            "place": "Dolni Bojanovice"
-            },
-        "end": {
-            "datetime": "03142000",
-            "country": "CZ",
-            "place": "Dolni Bojanovice"
             }
         },
     "segments": [
                 {
-                    "end_time": "03120700",
-                    "border_cross": "yes",
-                    "country": "SK",
-                    "place": "Holic",
-                    "number_of_meals": 0
-                },
-                {
-                    "end_time": "03121400",
-                    "border_cross": "yes",
-                    "country": "PL",
-                    "place": "Barwinek",
-                    "number_of_meals": 0
-                },
-                {
-                    "end_time": "03121500",
-                    "border_cross": "no",
-                    "country": "PL",
-                    "place": "Sanok",
-                    "number_of_meals": 0
-                },
-                {
-                    "end_time": "03140000",
-                    "border_cross": "no",
-                    "country": "PL",
-                    "place": "Sanok",
-                    "number_of_meals": 1
-                },
-                {
-                    "end_time": "03141200",
-                    "border_cross": "yes",
-                    "country": "SK",
-                    "place": "Barwinek",
-                    "number_of_meals": 1
-                },
-                {
-                    "end_time": "03141930",
-                    "border_cross": "yes",
                     "country": "CZ",
-                    "place": "Holic",
-                    "number_of_meals": 0
+                    "start_time": "03120630",
+                    "start_place": "Dolni Bojanovice",
+                    "end_time": "03120700",
+                    "end_place": "Holic",
+                    "border_cross": "yes",
+                    "new_country": "SK",
+                    "meals": 0
+                },
+                {
+                    "country": "SK",
+                    "start_time": "03120700",
+                    "start_place": "Holic",
+                    "end_time": "03121400",
+                    "end_place": "Barwinek",
+                    "border_cross": "yes",
+                    "new_country": "PL",
+                    "meals": 0
+                },
+                {
+                    "country": "PL",
+                    "start_time": "03121400",
+                    "start_place": "Barwinek",
+                    "end_time": "03121500",
+                    "end_place": "Sanok",
+                    "border_cross": "no",
+                    "new_country": "no",
+                    "meals": 0
+                },
+                {
+                    "country": "PL",
+                    "start_time": "03130000",
+                    "start_place": "Sanok",
+                    "end_time": "03140000",
+                    "end_place": "Sanok",
+                    "border_cross": "no",
+                    "new_country": "no",
+                    "meals": 1
+                },
+                {
+                    "country": "PL",
+                    "start_time": "03140000",
+                    "start_place": "Sanok",
+                    "end_time": "03141200",
+                    "end_place": "Barwinek",
+                    "border_cross": "yes",
+                    "new_country": "SK",
+                    "meals": 1
+                },
+                {
+                    "country": "SK",
+                    "start_time": "03141200",
+                    "start_place": "Barwinek",
+                    "end_time": "03141930",
+                    "end_place": "Holic",
+                    "border_cross": "yes",
+                    "new_country": "CZ",
+                    "meals": 0
+                },
+                                {
+                    "country": "CZ",
+                    "start_time": "03141930",
+                    "start_place": "Holic",
+                    "end_time": "03142000",
+                    "end_place": "Dolni Bojanovice",
+                    "border_cross": "no",
+                    "new_country": "no",
+                    "meals": 0
                 }
             ],
     "bills": [{

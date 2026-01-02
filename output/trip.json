@@ -1,0 +1,52 @@
+[
+  {
+    "date": "12/03",
+    "segments": [
+      {
+        "country": "CZ",
+        "time_hours": 0.5,
+        "meals": 0
+      },
+      {
+        "country": "SK",
+        "time_hours": 7.0,
+        "meals": 0
+      },
+      {
+        "country": "PL",
+        "time_hours": 1.0,
+        "meals": 0
+      }
+    ]
+  },
+  {
+    "date": "13/03",
+    "segments": [
+      {
+        "country": "PL",
+        "time_hours": 24.0,
+        "meals": 1
+      }
+    ]
+  },
+  {
+    "date": "14/03",
+    "segments": [
+      {
+        "country": "PL",
+        "time_hours": 12.0,
+        "meals": 1
+      },
+      {
+        "country": "SK",
+        "time_hours": 7.5,
+        "meals": 0
+      },
+      {
+        "country": "CZ",
+        "time_hours": 0.5,
+        "meals": 0
+      }
+    ]
+  }
+]

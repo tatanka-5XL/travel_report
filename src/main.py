@@ -37,49 +37,47 @@ with open("../input/trep.json", "r", encoding="utf-8") as f:
     json_file_data = json.load(f)
 
 year = json_file_data["year"]
-start_time_strg = json_file_data['trip_info']['start']['datetime']
-end_time_strg = json_file_data['trip_info']['end']['datetime']
-
-# Set up start and actual time
-start_time = to_isotime(year, start_time_strg)
-end_time = to_isotime(year, end_time_strg)
-
-print("Trip started in " + json_file_data["trip_info"]["start"]
-      ["country"] + " in " +
-      json_file_data["trip_info"]["start"]["place"] + " at " + to_stringtime(start_time) + ".")
-
-actual_time = start_time
+actual_time = None
+trip = []
+# adding: countries, hours in given country, number of meals
 
 for segment in json_file_data["segments"]:
-    new_time = to_isotime(year, segment["end_time"])
-    if segment["border_cross"] == "no":
-        hours_difference = diff_in_hours(actual_time, new_time)
-        print(hours_difference)
-        if (hours_difference < 24):
-            print("The rest of " + to_stringday(new_time) + " was spent in " + segment["place"] + ", which was reached at " + to_stringtime(new_time) + ".")
-        else:
-            print("On " + to_stringday(new_time - timedelta(hours=12)) + ", whole day was spent in " + segment["country"] + ".")
-            print("Then, on " + to_stringday(new_time) + ":")
-    else:
-        print("The trip continued to " + segment["country"] + " border, which was reached at " + to_stringtime(new_time) + ".")        
-    actual_time = new_time        
 
-print("The trip was ended in " + json_file_data["trip_info"]["end"]
-      ["country"] + " in " +
-      json_file_data["trip_info"]["end"]["place"] + " at " + to_stringtime(end_time) + ".")
+    start_time = to_isotime(year, segment["start_time"])
+    end_time = to_isotime(year, segment["end_time"])
+    day_str = to_stringday(start_time)
+    hours = diff_in_hours(start_time, end_time)
+    
+    # if no entry about the current day yet -> create it with first segment
+    if not any(day["date"] == day_str for day in trip):
+        trip.append({"date": day_str, "segments": [{"country": segment["country"], "time_hours": hours, "meals": segment["meals"]}]})    
+        continue # day created + segment added, go to next input segment
 
+    # find the existing day entry
+    for day in trip:
+        if day["date"] != day_str:
+            continue
 
+        # list of countries already stored for this day
+        countries_in_day = [s["country"] for s in day["segments"]]
 
+        # if current country not in current day entry -> append new country segment
+        if segment["country"] not in countries_in_day:
+            day["segments"].append({"country": segment["country"], "time_hours": hours, "meals": segment["meals"]})
+            break
 
-# create functions:
-# def calculate_perdiems_cz():
-# def calculate_perdiems_abroad():
+        # if country already exists -> add hours/meals to that country's segment
+        for s in day["segments"]:
+            if s["country"] == segment["country"]:
+                s["time_hours"] += hours
+                s["meals"] += segment["meals"]
+                break
 
-# Get the difference between times
-# start = datetime.fromisoformat("2025-03-12T06:30")
-# end = datetime.fromisoformat("2025-03-13T09:10")
+        break # done handling this segment's day       
+    
+                
+print(json.dumps(trip, indent=2, ensure_ascii=False))
 
-# delta = end - start
-# hours = delta.total_seconds() / 3600
+with open("../output/trip.json", "w", encoding="utf-8") as f:
+    json.dump(trip, f, indent=2, ensure_ascii=False)
 
-# print(hours)   # 2.6666666666666665
