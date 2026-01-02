@@ -42,57 +42,45 @@
         },
     "segments": [
                 {
-                    "end": {
-                        "datetime": "03120700",
-                        "border_cross": "yes",
-                        "country": "SK",
-                        "place": "Holic"
-                    },
+                    "end_time": "03120700",
+                    "border_cross": "yes",
+                    "country": "SK",
+                    "place": "Holic",
                     "number_of_meals": 0
                 },
                 {
-                    "end": {
-                        "datetime": "03121400",
-                        "border_cross": "yes",
-                        "country": "PL",
-                        "place": "Barwinek"
-                    },
+                    "end_time": "03121400",
+                    "border_cross": "yes",
+                    "country": "PL",
+                    "place": "Barwinek",
                     "number_of_meals": 0
                 },
                 {
-                    "end": {
-                        "datetime": "03121500",
-                        "border_cross": "no",
-                        "country": "PL",
-                        "place": "Sanok"
-                    },
+                    "end_time": "03121500",
+                    "border_cross": "no",
+                    "country": "PL",
+                    "place": "Sanok",
                     "number_of_meals": 0
                 },
                 {
-                    "end": {
-                        "datetime": "03140000",
-                        "border_cross": "no",
-                        "country": "PL",
-                        "place": "Sanok"
-                    },
+                    "end_time": "03140000",
+                    "border_cross": "no",
+                    "country": "PL",
+                    "place": "Sanok",
                     "number_of_meals": 1
                 },
                 {
-                    "end": {
-                        "datetime": "03141200",
-                        "border_cross": "yes",
-                        "country": "SK",
-                        "place": "Barwinek"
-                    },
+                    "end_time": "03141200",
+                    "border_cross": "yes",
+                    "country": "SK",
+                    "place": "Barwinek",
                     "number_of_meals": 1
                 },
                 {
-                    "end": {
-                        "datetime": "03141800",
-                        "border_cross": "yes",
-                        "country": "CZ",
-                        "place": "Holic"
-                    },
+                    "end_time": "03141930",
+                    "border_cross": "yes",
+                    "country": "CZ",
+                    "place": "Holic",
                     "number_of_meals": 0
                 }
             ],
