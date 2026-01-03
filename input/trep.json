@@ -16,6 +16,14 @@
             {
                 "code": "EUR",
                 "exchange_rate": 25.145
+            },
+            {
+                "code": "PLN",
+                "exchange_rate": 25.145
+            },
+            {
+                "code": "GBP",
+                "exchange_rate": 25.145
             }
             ]
         },

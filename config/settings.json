@@ -1,6 +1,6 @@
 {
     "year_valid": 2025,
-    "in_country": {
+    "cz": {
         "per_diems_czk": {
             "5_to_12": 148,
             "12_to_18": 225,
@@ -31,7 +31,7 @@
             "over_18": 100
         },
         "lowering_percents_per_meal": {
-            "5_to_12": 70,
+            "1_to_12": 70,
             "12_to_18": 35,
             "over_18": 25
         },
@@ -45,7 +45,11 @@
         "dalších pět hodin, aby měl nárok také na zahraniční stravné. Pro nárok na zahraniční stravné tedy zaměstnanec musí v zahraničí strávit minimálně jednu hodinu.",
         "Uskuteční-li v daném kalendářním dni zaměstnanec více zahraničních pracovních cest, doby strávené mimo území České republiky se pro účely zahraničního stravného sčítají.",
         "Procestuje-li zaměstnanec v jednom dni více států, náleží mu sazba zahraničního stravného pro stát, ve kterém strávil v daném dni nejdelší dobu.",
-        "Doba strávená v zahraničí, za kterou nevznikne nárok na zahraniční stravné, se připočítává do doby rozhodné pro určení nároku na tuzemské stravné."
+        "Doba strávená v zahraničí, za kterou nevznikne nárok na zahraniční stravné, se připočítává do doby rozhodné pro určení nároku na tuzemské stravné.",
+        "6 hod CZ + 4 hod PL -> pouze ceske stravne",
+        "4 hod CZ + 1 hod PL -> pouze polske stravne",
+        "6 hod CZ + 6 hod PL -> ceske i polske stravne",
+        "6 hod SK + 8 hod PL -> stravne za 14 hodin s PL rate (tou, ktera je vyssi)"
         ]
     }
 
