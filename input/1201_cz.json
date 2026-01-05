@@ -1,0 +1,64 @@
+{
+  "report_id": "1201_cz",
+  "year": "2025",
+  "employee": {
+    "name": "Petr Pribil",
+    "company": "Profisolv, s.r.o.",
+    "position": "Sales Eng, Owner"
+  },
+  "bank_rates": {
+    "start_date": "1202",
+    "currencies": [
+      {
+        "code": "CZK",
+        "exchange_rate": 1.0
+      },
+      {
+        "code": "EUR",
+        "exchange_rate": 24.16
+      }
+    ]
+  },
+  "trip_info": {
+    "trip_number": null,
+    "Trip description": "Visit of Hutchinson CZ and Akwel CZ",
+    "Target locations": "Rokycany CZ, Rudnik CZ",
+    "transport": {
+      "mode": "Company Car",
+      "vehicle_registration": "3BF 3073"
+    }
+  },
+  "segments": [
+    {
+      "country": "CZ",
+      "start_time": "12021440",
+      "start_place": "Dolni Bojanovice",
+      "end_time": "12030000",
+      "end_place": "Plzen",
+      "meals": 0,
+      "border_cross": "no",
+      "new_country": "no"
+    },
+    {
+      "country": "CZ",
+      "start_time": "12030000",
+      "start_place": "Plzen",
+      "end_time": "12040000",
+      "end_place": "Vrchlabi",
+      "meals": 1,
+      "border_cross": "no",
+      "new_country": "no"
+    },
+    {
+      "country": "CZ",
+      "start_time": "12040000",
+      "start_place": "Vrchlabi",
+      "end_time": "12041900",
+      "end_place": "Dolni Bojanovice",
+      "meals": 1,
+      "border_cross": "no",
+      "new_country": "end"
+    }
+  ],
+  "bills": []
+}

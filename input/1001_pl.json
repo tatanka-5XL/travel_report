@@ -1,0 +1,118 @@
+{
+  "report_id": "1001_pl",
+  "year": "2025",
+  "employee": {
+    "name": "Petr Pribil",
+    "company": "Profisolv, s.r.o.",
+    "position": "Sales Eng, Owner"
+  },
+  "bank_rates": {
+    "start_date": "1013",
+    "currencies": [
+      {
+        "code": "CZK",
+        "exchange_rate": 1.0
+      },
+      {
+        "code": "EUR",
+        "exchange_rate": 24.355
+      },
+      {
+        "code": "PLN",
+        "exchange_rate": 5.715
+      }
+    ]
+  },
+  "trip_info": {
+    "trip_number": 118,
+    "Trip description": "Trials in PASS Sanok PL",
+    "Target locations": "Sanok, PL",
+    "transport": {
+      "mode": "Company Car",
+      "vehicle_registration": "3BF 3073"
+    }
+  },
+  "segments": [
+    {
+      "country": "CZ",
+      "start_time": "10131140",
+      "start_place": "Dolni Bojanovice",
+      "end_time": "10131200",
+      "end_place": "Holic",
+      "meals": 0,
+      "border_cross": "yes",
+      "new_country": "SK"
+    },
+    {
+      "country": "SK",
+      "start_time": "10131200",
+      "start_place": "Holic",
+      "end_time": "10131755",
+      "end_place": "Barwinek",
+      "meals": 0,
+      "border_cross": "yes",
+      "new_country": "PL"
+    },
+    {
+      "country": "PL",
+      "start_time": "10131755",
+      "start_place": "Barwinek",
+      "end_time": "10140000",
+      "end_place": "Sanok",
+      "meals": 0,
+      "border_cross": "no",
+      "new_country": "no"
+    },
+    {
+      "country": "PL",
+      "start_time": "10140000",
+      "start_place": "Sanok",
+      "end_time": "10150000",
+      "end_place": "Sanok",
+      "meals": 1,
+      "border_cross": "no",
+      "new_country": "no"
+    },
+    {
+      "country": "PL",
+      "start_time": "10150000",
+      "start_place": "Sanok",
+      "end_time": "10160000",
+      "end_place": "Sanok",
+      "meals": 1,
+      "border_cross": "no",
+      "new_country": "no"
+    },
+    {
+      "country": "PL",
+      "start_time": "10160000",
+      "start_place": "Sanok",
+      "end_time": "10161135",
+      "end_place": "Barwinek",
+      "meals": 1,
+      "border_cross": "yes",
+      "new_country": "SK"
+    },
+    {
+      "country": "SK",
+      "start_time": "10161135",
+      "start_place": "Barwinek",
+      "end_time": "10162025",
+      "end_place": "Holic",
+      "meals": 0,
+      "border_cross": "yes",
+      "new_country": "CZ"
+    },
+    {
+      "country": "CZ",
+      "start_time": "10162025",
+      "start_place": "Holic",
+      "end_time": "10162040",
+      "end_place": "Dolni Bojanovice",
+      "meals": 0,
+      "border_cross": "no",
+      "new_country": "end"
+    }
+  ],
+  "bills": []
+}
