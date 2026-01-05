@@ -1,0 +1,93 @@
+{
+  "days": [
+    {
+      "date": "23/07",
+      "segments": [
+        {
+          "country": "CZ",
+          "time_hours": 3.6666666666666665,
+          "meals": 0
+        },
+        {
+          "country": "PL",
+          "time_hours": 6.833333333333333,
+          "meals": 0
+        }
+      ],
+      "per_diem": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "band": "under_5",
+          "base": 0,
+          "meals": 0,
+          "reduction_percent_per_meal": null,
+          "amount": 0
+        },
+        {
+          "country": "PL",
+          "currency": "EUR",
+          "band": "1_to_12",
+          "base_rate": 50.0,
+          "percent": 33.3,
+          "base": 16.65,
+          "foreign_hours_total": 6.83,
+          "meals": 0,
+          "reduction_percent_per_meal": 70.0,
+          "amount": 16.65,
+          "exchange_rate_to_czk": 24.615,
+          "amount_czk": 409.84
+        }
+      ],
+      "comment": "CZ: 3.67h <5h ⇒ 0 CZK. | FOREIGN (PL): total 6.83h ⇒ 1_to_12 (33.3%) base 16.65 EUR; meals 0 lowered 0.00 ⇒ paid 16.65 EUR. Converted: 16.65 EUR × 24.6150 = 409.84 CZK."
+    },
+    {
+      "date": "24/07",
+      "segments": [
+        {
+          "country": "PL",
+          "time_hours": 15.333333333333334,
+          "meals": 1
+        },
+        {
+          "country": "CZ",
+          "time_hours": 3.0,
+          "meals": 0
+        }
+      ],
+      "per_diem": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "band": "under_5",
+          "base": 0,
+          "meals": 0,
+          "reduction_percent_per_meal": null,
+          "amount": 0
+        },
+        {
+          "country": "PL",
+          "currency": "EUR",
+          "band": "12_to_18",
+          "base_rate": 50.0,
+          "percent": 66.6,
+          "base": 33.3,
+          "foreign_hours_total": 15.33,
+          "meals": 1,
+          "reduction_percent_per_meal": 35.0,
+          "amount": 21.64,
+          "exchange_rate_to_czk": 24.615,
+          "amount_czk": 532.67
+        }
+      ],
+      "comment": "CZ: 3.00h <5h ⇒ 0 CZK. | FOREIGN (PL): total 15.33h ⇒ 12_to_18 (66.6%) base 33.30 EUR; meals 1 lowered 11.65 ⇒ paid 21.64 EUR. Converted: 21.64 EUR × 24.6150 = 532.67 CZK."
+    }
+  ],
+  "summary": {
+    "total_per_diem_base_czk": 1229.52,
+    "total_per_diem_paid_czk": 942.51,
+    "pocket_money_percent": 40.0,
+    "total_pocket_money_czk": 491.81,
+    "total_money_czk": 1434.32
+  }
+}

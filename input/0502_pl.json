@@ -1,0 +1,78 @@
+{
+  "report_id": "0502_pl",
+  "year": "2025",
+  "employee": {
+    "name": "Petr Pribil",
+    "company": "Profisolv, s.r.o.",
+    "position": "Sales Eng, Owner"
+  },
+  "bank_rates": {
+    "start_date": "0520",
+    "currencies": [
+      {
+        "code": "CZK",
+        "exchange_rate": 1.0
+      },
+      {
+        "code": "EUR",
+        "exchange_rate": 24.920
+      },
+      {
+        "code": "PLN",
+        "exchange_rate": 5.866
+      }
+    ]
+  },
+  "trip_info": {
+    "trip_number": 100,
+    "Trip description": "Visit of PASS Sanok PL",
+    "Target locations": "Sanok, PL",
+    "transport": {
+      "mode": "Company Car",
+      "vehicle_registration": "3BF 3073"
+    }
+  },
+  "segments": [
+    {
+      "country": "CZ",
+      "start_time": "05200500",
+      "start_place": "Dolni Bojanovice",
+      "end_time": "05200950",
+      "end_place": "Gorzicki",
+      "meals": 0,
+      "border_cross": "yes",
+      "new_country": "PL"
+    },
+    {
+      "country": "PL",
+      "start_time": "05200950",
+      "start_place": "Gorzicki",
+      "end_time": "05210000",
+      "end_place": "Sanok",
+      "meals": 0,
+      "border_cross": "no",
+      "new_country": "no"
+    },
+    {
+      "country": "PL",
+      "start_time": "05210000",
+      "start_place": "Sanok",
+      "end_time": "05212010",
+      "end_place": "Gorzicki",
+      "meals": 1,
+      "border_cross": "yes",
+      "new_country": "CZ"
+    },
+    {
+      "country": "CZ",
+      "start_time": "05212010",
+      "start_place": "Gorzicki",
+      "end_time": "05212255",
+      "end_place": "Dolni Bojanovice",
+      "meals": 0,
+      "border_cross": "no",
+      "new_country": "end"
+    }
+  ],
+  "bills": []
+}

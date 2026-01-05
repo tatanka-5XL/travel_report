@@ -1,0 +1,159 @@
+{
+  "days": [
+    {
+      "date": "23/06",
+      "segments": [
+        {
+          "country": "CZ",
+          "time_hours": 10.5,
+          "meals": 0
+        }
+      ],
+      "per_diem": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "band": "5_to_12",
+          "base": 148.0,
+          "meals": 0,
+          "reduction_percent_per_meal": 70.0,
+          "amount": 148.0
+        }
+      ],
+      "comment": "CZ: 10.50h ⇒ base 148.00 CZK (5_to_12); meals 0 lowered 0.00 ⇒ paid 148.00 CZK."
+    },
+    {
+      "date": "24/06",
+      "segments": [
+        {
+          "country": "CZ",
+          "time_hours": 24.0,
+          "meals": 1
+        }
+      ],
+      "per_diem": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "band": "over_18",
+          "base": 353.0,
+          "meals": 1,
+          "reduction_percent_per_meal": 25.0,
+          "amount": 264.75
+        }
+      ],
+      "comment": "CZ: 24.00h ⇒ base 353.00 CZK (over_18); meals 1 lowered 88.25 ⇒ paid 264.75 CZK."
+    },
+    {
+      "date": "25/06",
+      "segments": [
+        {
+          "country": "CZ",
+          "time_hours": 24.0,
+          "meals": 2
+        }
+      ],
+      "per_diem": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "band": "over_18",
+          "base": 353.0,
+          "meals": 2,
+          "reduction_percent_per_meal": 25.0,
+          "amount": 176.5
+        }
+      ],
+      "comment": "CZ: 24.00h ⇒ base 353.00 CZK (over_18); meals 2 lowered 176.50 ⇒ paid 176.50 CZK."
+    },
+    {
+      "date": "26/06",
+      "segments": [
+        {
+          "country": "CZ",
+          "time_hours": 23.833333333333332,
+          "meals": 1
+        },
+        {
+          "country": "PL",
+          "time_hours": 0.16666666666666666,
+          "meals": 0
+        }
+      ],
+      "per_diem": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "band": "over_18",
+          "base": 353.0,
+          "meals": 1,
+          "reduction_percent_per_meal": 25.0,
+          "amount": 264.75
+        },
+        {
+          "country": "FOREIGN",
+          "currency": null,
+          "band": "blocked_cz>=5_foreign<5",
+          "base_rate": null,
+          "percent": 0,
+          "base": 0,
+          "foreign_hours_total": 0.17,
+          "meals": 0,
+          "reduction_percent_per_meal": null,
+          "amount": 0,
+          "amount_czk": 0,
+          "exchange_rate_to_czk": null
+        }
+      ],
+      "comment": "CZ: 23.83h ⇒ base 353.00 CZK (over_18); meals 1 lowered 88.25 ⇒ paid 264.75 CZK. | FOREIGN: 0.17h, but CZ 23.83h ≥5h and foreign <5h ⇒ 0."
+    },
+    {
+      "date": "27/06",
+      "segments": [
+        {
+          "country": "PL",
+          "time_hours": 15.833333333333334,
+          "meals": 1
+        },
+        {
+          "country": "CZ",
+          "time_hours": 3.5833333333333335,
+          "meals": 0
+        }
+      ],
+      "per_diem": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "band": "under_5",
+          "base": 0,
+          "meals": 0,
+          "reduction_percent_per_meal": null,
+          "amount": 0
+        },
+        {
+          "country": "PL",
+          "currency": "EUR",
+          "band": "12_to_18",
+          "base_rate": 50.0,
+          "percent": 66.6,
+          "base": 33.3,
+          "foreign_hours_total": 15.83,
+          "meals": 1,
+          "reduction_percent_per_meal": 35.0,
+          "amount": 21.64,
+          "exchange_rate_to_czk": 24.865,
+          "amount_czk": 538.08
+        }
+      ],
+      "comment": "CZ: 3.58h <5h ⇒ 0 CZK. | FOREIGN (PL): total 15.83h ⇒ 12_to_18 (66.6%) base 33.30 EUR; meals 1 lowered 11.65 ⇒ paid 21.64 EUR. Converted: 21.64 EUR × 24.8650 = 538.08 CZK."
+    }
+  ],
+  "summary": {
+    "total_per_diem_base_czk": 2035.0,
+    "total_per_diem_paid_czk": 1392.08,
+    "pocket_money_percent": 40.0,
+    "total_pocket_money_czk": 814.0,
+    "total_money_czk": 2206.08
+  }
+}
