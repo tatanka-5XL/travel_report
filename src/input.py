@@ -1,6 +1,7 @@
 import json
 import re
 
+
 def ask(prompt, default=None):
     """Ask a question, allow empty input. If default provided, Enter keeps default."""
     if default is not None and default != "":
@@ -8,13 +9,16 @@ def ask(prompt, default=None):
         return val if val else str(default)
     return input(f"{prompt}: ").strip()
 
+
 def ask_int(prompt, default=None):
     val = ask(prompt, default)
     return int(val) if val else None
 
+
 def ask_float(prompt, default=None):
     val = ask(prompt, default)
     return float(val) if val else None
+
 
 def normalize_yesno(val):
     v = (val or "").strip().lower()
@@ -23,6 +27,7 @@ def normalize_yesno(val):
     if v in ("n", "no"):
         return "no"
     return v
+
 
 def normalize_new_country_or_end(val):
     v = (val or "").strip().lower()
@@ -37,22 +42,22 @@ data = {}
 
 # --- Basic info ---
 data["report_id"] = ask("Report ID")
-data["year"] = ask("Year")
+data["year"] = ask("Year", 2026)
 
 # --- Employee ---
 data["employee"] = {
     "name": ask("Employee name", "Petr Pribil"),
-    "company": ask("Company", "Profisolv, s.r.o."),
-    "position": ask("Position", "Sales Eng, Owner"),
+    # "company": ask("Company", "Profisolv, s.r.o."),
+    # "position": ask("Position", "Sales Eng, Owner"),
 }
 
 # --- Bank rates ---
 data["bank_rates"] = {
-    "start_date": ask("Bank rates start date (MMDD)"),
-    "currencies": []
+    "effective_date": ask("Bank rates effective date (MMDD)"),
+    "currencies": [{"code": "CZK", "exchange_rate": 1}]
 }
 
-print("\nEnter currencies (empty code to finish):")
+print("\nEnter foreign currencies (empty code to finish):")
 while True:
     code = ask("Currency code")
     if not code:

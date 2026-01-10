@@ -1,3 +1,17 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Filename: excel.py
+Description: Temporary file to start with excel sheet creating using upenpyxl
+
+Author: Tatanka5XL
+Created: 2025-12-23
+Last Modified: 2026-01-10
+Version: 0.2 (change from segment to point input)
+License: Proprietary
+"""
+
+
 import openpyxl
 from openpyxl.styles import Font, Alignment
 from openpyxl.worksheet.pagebreak import Break
