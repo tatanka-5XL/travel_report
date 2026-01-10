@@ -5,9 +5,9 @@ Filename: excel.py
 Description: Temporary file to start with excel sheet creating using upenpyxl
 
 Author: Tatanka5XL
-Created: 2025-12-23
+Created: 2025-01-09
 Last Modified: 2026-01-10
-Version: 0.2 (change from segment to point input)
+Version: 0.2 (before integration into main.py, now not used)
 License: Proprietary
 """
 
