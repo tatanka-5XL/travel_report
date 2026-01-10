@@ -64,6 +64,17 @@ data["employee"] = {
     # "position": ask("Position", "Sales Eng, Owner"),
 }
 
+# --- Trip info ---
+data["trip_info"] = {
+    "trip_number": ask_int("Trip number"),
+    "Trip description": ask("Trip description"),
+    "Target locations": ask("Target locations"),
+    "transport": {
+        "mode": ask("Transport mode", "Company Car"),
+        "vehicle_registration": ask("Vehicle registration", "3BF 3073"),
+    }
+}
+
 # --- Bank rates ---
 data["bank_rates"] = {
     "effective_date": ask("Bank rates effective date (MMDD)"),
@@ -81,16 +92,6 @@ while True:
         "exchange_rate": rate
     })
 
-# --- Trip info ---
-data["trip_info"] = {
-    "trip_number": ask_int("Trip number"),
-    "Trip description": ask("Trip description"),
-    "Target locations": ask("Target locations"),
-    "transport": {
-        "mode": ask("Transport mode", "Company Car"),
-        "vehicle_registration": ask("Vehicle registration", "3BF 3073"),
-    }
-}
 
 # --- Segments ---
 data["points"] = []
