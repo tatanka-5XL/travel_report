@@ -1,0 +1,34 @@
+{
+  "report_id": "",
+  "year": "2026",
+  "employee": {
+    "name": "Petr Pribil"
+  },
+  "trip_info": {
+    "trip_number": null,
+    "trip_description": "",
+    "start_country": "CZ",
+    "target_locations": "",
+    "transport": {
+      "mode": "Company Car",
+      "vehicle_registration": "3BF 3073"
+    }
+  },
+  "bank_rates": {
+    "effective_date": "",
+    "currencies": [
+      {
+        "code": "CZK",
+        "exchange_rate": 1
+      }
+    ]
+  },
+  "waypoints": [
+    {
+      "country": "CZ",
+      "waypoint_time": "",
+      "type": "m"
+    }
+  ],
+  "bills": []
+}

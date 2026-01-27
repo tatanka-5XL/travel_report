@@ -1,10 +1,10 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-		"editor.inlineSuggest.enabled": false
-	}
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "editor.inlineSuggest.enabled": false
+  }
 }
