@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 """
 Filename: excel.py
-Description: Temporary file to input data via exchancheable data format (json)
+Description: Temporary file to input data via exchangeable data format (json)
 
 Author: Tatanka5XL
 Created: 2025-12-23
-Last Modified: 2026-01-10
-Version: 0.2 (change from segment to point input)
+Last Modified: 2026-01-27
+Version: 0.3 (day-based waypoint input)
 License: Proprietary
 """
 
@@ -25,7 +25,7 @@ def ask(prompt, default=None):
 
 def ask_int(prompt, default=None):
     val = ask(prompt, default)
-    return int(val) if val else None
+    return int(val) if val else 0
 
 
 def ask_float(prompt, default=None):
@@ -33,22 +33,35 @@ def ask_float(prompt, default=None):
     return float(val) if val else None
 
 
-def normalize_yesno(val):
-    v = (val or "").strip().lower()
-    if v in ("y", "yes"):
-        return "yes"
-    if v in ("n", "no"):
-        return "no"
+def normalize_next(val: str) -> str:
+    """Normalize 'next' control values."""
+    v = (val or "").strip()
+    low = v.lower()
+    if low in ("end", "endtrip"):
+        return low
+    return v  # free-form string allowed
+
+
+def validate_mmdd(val: str) -> str:
+    v = (val or "").strip()
+    if not re.fullmatch(r"\d{4}", v):
+        raise ValueError("Day must be in MMDD format, e.g. 0312")
+    mm = int(v[:2])
+    dd = int(v[2:])
+    if not (1 <= mm <= 12 and 1 <= dd <= 31):
+        raise ValueError("Invalid MMDD value.")
     return v
 
 
-def normalize_new_country_or_end(val):
-    v = (val or "").strip().lower()
-    if v == "end":
-        return "end"
-    if v in ("no", "n", ""):
-        return "no"
-    return v.upper()
+def validate_hhmm(val: str) -> str:
+    v = (val or "").strip()
+    if not re.fullmatch(r"\d{4}", v):
+        raise ValueError("Time must be in HHMM format, e.g. 0630")
+    hh = int(v[:2])
+    mm = int(v[2:])
+    if not (0 <= hh <= 23 and 0 <= mm <= 59):
+        raise ValueError("Invalid HHMM value.")
+    return v
 
 
 data = {}
@@ -92,63 +105,74 @@ while True:
         "exchange_rate": rate
     })
 
+# --- Day-based waypoints ---
+# Structure:
+# data["waypoints"] = {
+#   "0312": [ {time, place, country, meals, next}, ... ],
+#   "0313": [ ... ]
+# }
+data["waypoints"] = {}
 
-# --- Segments ---
-data["points"] = []
+print("\nEnter travel days and waypoints.")
+print("Rules:")
+print(" - First enter day (MMDD).")
+print(" - For each day, enter waypoints (time HHMM, place, country, meals, next).")
+print(" - 'next' can be any string, or 'end' to finish the day, or 'endtrip' to finish the trip.\n")
 
-print("\nEnter travel segments (type 'end' at 'New country' to finish trip segments):")
+last_country = None
+end_trip = False
 
-prefill = {
-    "country": None,
-    "start_time": None,
-    "start_place": None
-}
-
-while True:
-    country = ask("Country", prefill["country"])
-
-    start_time = ask("Start time (MMDDHHMM)", prefill["start_time"])
-    start_place = ask("Start place", prefill["start_place"])
-
-    end_time = ask("End time (MMDDHHMM)")
-    end_place = ask("End place")
-
-    # 🔁 MOVED HERE
-    meals = ask_int("Meals", 0) or 0
-
-    border_cross = normalize_yesno(
-        ask("Border cross (yes/no)", "no")
-    )
-
-    new_country = normalize_new_country_or_end(
-        ask("New country or 'end' to finish trip", "no")
-    )
-
-    segment = {
-        "country": country,
-        "start_time": start_time,
-        "start_place": start_place,
-        "end_time": end_time,
-        "end_place": end_place,
-        "meals": meals,                 # ⬅ moved before border_cross
-        "border_cross": border_cross,
-        "new_country": new_country
-    }
-
-    data["segments"].append(segment)
-
-    # stop segment input if user typed "end"
-    if new_country == "end":
+while not end_trip:
+    # Ask for day first
+    day_raw = ask("Day (MMDD) (empty to finish trip input)")
+    if not day_raw:
         break
+    try:
+        day = validate_mmdd(day_raw)
+    except ValueError as e:
+        print(f"Invalid day: {e}")
+        continue
 
-    # auto-fill next segment
-    if new_country not in ("no", None, ""):
-        prefill["country"] = new_country
-    else:
-        prefill["country"] = country
+    data["waypoints"].setdefault(day, [])
+    print(f"\n--- Day {day} ---")
 
-    prefill["start_place"] = end_place if end_place else None
-    prefill["start_time"] = end_time if end_time else None
+    while True:
+        # Build one waypoint dict
+        try:
+            t = validate_hhmm(ask("  Time (HHMM)"))
+        except ValueError as e:
+            print(f"  Invalid time: {e}")
+            continue
+
+        place = ask("  Place")
+        country = ask("  Country", last_country or "")
+        meals = ask_int("  Meals", 0)
+
+        nxt = normalize_next(
+            ask("  Next (string, or 'end' to finish day, or 'endtrip' to finish trip)", "")
+        )
+
+        wp = {
+            "time": t,
+            "place": place,
+            "country": country,
+            "meals": int(meals),
+            "next": nxt
+        }
+        data["waypoints"][day].append(wp)
+
+        # Remember last country for the next waypoint (and next day)
+        if country:
+            last_country = country
+
+        if nxt == "end":
+            print(f"--- Day {day} closed ---\n")
+            break
+
+        if nxt == "endtrip":
+            print(f"--- Trip input closed at day {day} ---\n")
+            end_trip = True
+            break
 
 # --- Bills ---
 data["bills"] = []

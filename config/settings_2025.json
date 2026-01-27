@@ -1,10 +1,10 @@
 {
-    "year_valid": 2026,
+    "year_valid": 2025,
     "cz": {
         "per_diems_czk": {
-            "5_to_12": 185,
-            "12_to_18": 284,
-            "over_18": 442
+            "5_to_12": 148,
+            "12_to_18": 225,
+            "over_18": 353
         },
         "lowering_percents_per_meal": {
             "5_to_12": 70,
@@ -16,17 +16,14 @@
     "foreign": {
         "per_diems": {
             "PL_eur": 50,
-            "SK_eur": 40,
+            "SK_eur": 35,
             "HU_eur": 50,
-            "DE_eur": 50,
+            "DE_eur": 45,
             "AT_eur": 45,
-            "IT_eur": 55,
-            "FR_eur": 50,
             "SRB_eur": 40,
             "UK_gbp": 45,
             "KSA_eur": 50,
-            "SAE_usd": 55,
-            "USA_usd": 70
+            "SAE_usd": 55
         },
         "per_diems_percents": {
             "1_to_12": 33.3,

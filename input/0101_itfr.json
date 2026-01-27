@@ -1,0 +1,205 @@
+{
+  "report_id": "0101_itfr",
+  "year": "2026",
+  "employee": {
+    "name": "Petr Pribil"
+  },
+  "trip_info": {
+    "trip_number": 126,
+    "Trip description": "Tristone IT + Akwel FR",
+    "Target locations": "Torino IT, Vannes FR",
+    "transport": {
+      "mode": "Company Car",
+      "vehicle_registration": "3BF 3073"
+    }
+  },
+  "bank_rates": {
+    "effective_date": "0112",
+    "currencies": [
+      {
+        "code": "CZK",
+        "exchange_rate": 1
+      },
+      {
+        "code": "EUR",
+        "exchange_rate": 24.285
+      }
+    ]
+  },
+  "waypoints": {
+    "0112": [
+      {
+        "time": "0555",
+        "place": "Dolni Bojanovice",
+        "country": "CZ",
+        "meals": 0,
+        "next": "drive"
+      },
+      {
+        "time": "0645",
+        "place": "Bernardsthal",
+        "country": "AT",
+        "meals": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1440",
+        "place": "Tarvisio",
+        "country": "IT",
+        "meals": 0,
+        "next": "drive"
+      },
+      {
+        "time": "2120",
+        "place": "Torino",
+        "country": "IT",
+        "meals": 0,
+        "next": "end"
+      }
+    ],
+    "0113": [
+      {
+        "time": "0930",
+        "place": "Torino",
+        "country": "IT",
+        "meals": 1,
+        "next": "drive"
+      },
+      {
+        "time": "1000",
+        "place": "Tristone",
+        "country": "IT",
+        "meals": 0,
+        "next": "meeting"
+      },
+      {
+        "time": "1030",
+        "place": "Tristone",
+        "country": "IT",
+        "meals": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1500",
+        "place": "Mont Blanc",
+        "country": "FR",
+        "meals": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1740",
+        "place": "Nantua",
+        "country": "FR",
+        "meals": 0,
+        "next": "end"
+      }
+    ],
+    "0114": [
+      {
+        "time": "1030",
+        "place": "Nantua",
+        "country": "FR",
+        "meals": 1,
+        "next": "drive"
+      },
+      {
+        "time": "2150",
+        "place": "Loches",
+        "country": "FR",
+        "meals": 0,
+        "next": "end"
+      }
+    ],
+    "0115": [
+      {
+        "time": "0950",
+        "place": "Loches",
+        "country": "FR",
+        "meals": 1,
+        "next": "drive"
+      },
+      {
+        "time": "1000",
+        "place": "Akwel",
+        "country": "FR",
+        "meals": 0,
+        "next": "meeting"
+      },
+      {
+        "time": "1100",
+        "place": "Akwel",
+        "country": "FR",
+        "meals": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1515",
+        "place": "Akwel Vannes",
+        "country": "FR",
+        "meals": 0,
+        "next": "meeting"
+      },
+      {
+        "time": "1600",
+        "place": "Akwel Vannes",
+        "country": "FR",
+        "meals": 0,
+        "next": "drive"
+      },
+      {
+        "time": "2200",
+        "place": "Chartres",
+        "country": "FR",
+        "meals": 0,
+        "next": "end"
+      }
+    ],
+    "0116": [
+      {
+        "time": "1000",
+        "place": "Chartres",
+        "country": "FR",
+        "meals": 1,
+        "next": "drive"
+      },
+      {
+        "time": "1545",
+        "place": "Saarbrucken",
+        "country": "DE",
+        "meals": 0,
+        "next": "drive"
+      },
+      {
+        "time": "2010",
+        "place": "Rozvadov",
+        "country": "CZ",
+        "meals": 0,
+        "next": "drive"
+      },
+      {
+        "time": "2050",
+        "place": "Plzen",
+        "country": "CZ",
+        "meals": 0,
+        "next": "end"
+      }
+    ],
+    "0117": [
+      {
+        "time": "1010",
+        "place": "Plzen",
+        "country": "CZ",
+        "meals": 1,
+        "next": "drive"
+      },
+      {
+        "time": "1450",
+        "place": "Dolni Bojanovice",
+        "country": "CZ",
+        "meals": 0,
+        "next": "end"
+      }
+    ]
+  },
+  "bills": []
+}
