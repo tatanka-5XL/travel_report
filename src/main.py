@@ -11,12 +11,14 @@ Version: 0.5
 License: Proprietary
 """
 
+
 from datetime import datetime, timedelta
 import json
 import os
-import openpyxl
+from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment
 from openpyxl.worksheet.pagebreak import Break
+
 
 # =========================
 # Helpers
@@ -455,169 +457,112 @@ print(f"\nProcessed data saved to {output_path}")
 # Excel sheet generating part
 # ===========================
 
+MAX_ROWS = 50
+MAX_COLS = 6  # A..F
 
-wb = openpyxl.Workbook()
-print(wb.sheetnames)
-sheet = wb.active
-sheet.title = 'Spam Bacon Eggs Sheet'
-print(wb.sheetnames)
+wb = Workbook()
+ws = wb.active
+ws.title = "Vyúčtování služební cesty"
 
-# Print settings
-sheet.print_area = "A1:F66"
+# --- Print setup (A4 portrait, 1 page) ---
+ws.print_area = f"A1:F{MAX_ROWS}"
+ws.page_setup.paperSize = ws.PAPERSIZE_A4
+ws.page_setup.orientation = ws.ORIENTATION_PORTRAIT
+ws.page_setup.fitToWidth = 1
+ws.page_setup.fitToHeight = 1
+ws.sheet_properties.pageSetUpPr.fitToPage = True
 
-# A4 + portrait (or switch to landscape if needed)
-sheet.page_setup.paperSize = sheet.PAPERSIZE_A4
-# try LANDSCAPE for wide tables
-sheet.page_setup.orientation = sheet.ORIENTATION_PORTRAIT
+# Margins (inches)
+ws.page_margins.left = 0.25
+ws.page_margins.right = 0.25
+ws.page_margins.top = 0.5
+ws.page_margins.bottom = 0.5
+ws.page_margins.header = 0.3
+ws.page_margins.footer = 0.3
 
-# Fit the print area to ONE page (this is the key)
-sheet.page_setup.fitToWidth = 1
-sheet.page_setup.fitToHeight = 1
-sheet.sheet_properties.pageSetUpPr.fitToPage = True
+# --- Defaults (font + alignment) applied to A1:F50 only ---
+font = Font(name="Helvetica", size=10)
+align = Alignment(horizontal="left", vertical="center")
 
-# Reasonable margins (in inches!)
-sheet.page_margins.left = 0.25
-sheet.page_margins.right = 0.25
-sheet.page_margins.top = 0.5
-sheet.page_margins.bottom = 0.5
-
-# Optional: center on page
-sheet.page_setup.horizontalCentered = True
-
-
-sheet.print_area = "A1:F85"
-sheet.row_breaks.append(Break(id=66))
-sheet.col_breaks.append(Break(id=6))
-
-# Set default font for the workbook (matches Excel default)
-default_font = Font(name="Helvetica", size=10)
-for row in sheet.iter_rows(min_row=1, max_row=66, min_col=1, max_col=6):
+for row in ws.iter_rows(min_row=1, max_row=MAX_ROWS, min_col=1, max_col=MAX_COLS):
     for cell in row:
-        cell.font = default_font
+        cell.font = font
+        cell.alignment = align
 
-for row_idx in range(1, 67):
-    sheet.row_dimensions[row_idx].height = 12
+# Row height
+for r in range(1, MAX_ROWS + 1):
+    ws.row_dimensions[r].height = 12
 
-sheet.column_dimensions["A"].width = 82 / 5.9
-sheet.column_dimensions["B"].width = 266 / 5.9
-sheet.column_dimensions["C"].width = 63 / 5.9
-sheet.column_dimensions["D"].width = 63 / 5.9
-sheet.column_dimensions["E"].width = 63 / 5.9
-sheet.column_dimensions["F"].width = 63 / 5.9
+# Column widths – fill whole A4 width
+ws.column_dimensions["A"].width = 9.5
+ws.column_dimensions["B"].width = 37.0
+ws.column_dimensions["C"].width = 13.0
+ws.column_dimensions["D"].width = 11.0
+ws.column_dimensions["E"].width = 11.0
+ws.column_dimensions["F"].width = 8.5
 
-# Text alignment in cells
-alignment = Alignment(horizontal="left", vertical="center")
+# --- Header text ---
+bold = Font(name="Helvetica", size=10, bold=True)
 
-for row in sheet.iter_rows(
-        min_row=1,
-        max_row=sheet.max_row,
-        min_col=1,
-        max_col=sheet.max_column
-):
-    for cell in row:
-        cell.alignment = alignment
+ws["A1"] = "Vyúčtování služební cesty"
+ws["C1"] = "Profisolv, s.r.o."  
+ws["E1"] = "Číslo:"
+ws["E2"] = "List:"
 
-# Header
-sheet['A1'] = 'Vyúčtování služební cesty'
-sheet["A1"].font = Font(bold=True)
-
-sheet['C1'] = 'Profisolv, s.r.o.'
-sheet["C1"].font = Font(bold=True)
-
-sheet['E1'] = 'Číslo:'
-sheet["E1"].font = Font(bold=True)
-sheet['E2'] = 'List:'
-sheet["E2"].font = Font(bold=True)
-
-sheet['A4'] = 'Pracovník:'
-sheet["A4"].font = Font(bold=True)
-sheet['A5'] = 'Ùčel cesty:'
-sheet["A5"].font = Font(bold=True)
-sheet['A6'] = 'Prostředek:'
-sheet["A6"].font = Font(bold=True)
-sheet['A7'] = 'Trasa:'
-sheet["A7"].font = Font(bold=True)
-
-# Route
-sheet['B9'] = 'Popis trasy'
-sheet["B9"].font = Font(bold=True)
-sheet["B9"].alignment = Alignment(
-    horizontal="center",
-    vertical="center"
-)
-
-sheet['A10'] = 'Bod'
-sheet["A10"].font = Font(bold=True)
-sheet['B10'] = 'Místo'
-sheet["B10"].font = Font(bold=True)
-sheet['C10'] = 'Datum'
-sheet["C10"].font = Font(bold=True)
-sheet['D10'] = 'Čas'
-sheet["D10"].font = Font(bold=True)
-sheet['E10'] = 'Doba'
-sheet["E10"].font = Font(bold=True)
-sheet['F10'] = 'Jídla'
-sheet["F10"].font = Font(bold=True)
+ws["A4"] = "Pracovník:"
+ws["A5"] = "Účel cesty:"
+ws["A6"] = "Prostředek:"
+ws["A7"] = "Trasa:"
 
 
-# Costs
-sheet['B32'] = 'Náklady'
-sheet["B32"].font = Font(bold=True)
-sheet["B32"].alignment = Alignment(
-    horizontal="center",
-    vertical="center"
-)
+# Popis trasy
+ws["B9"] = "Popis trasy"
+ws["B9"].alignment = Alignment(horizontal="center", vertical="center")
 
-sheet['A33'] = 'Stravné'
-sheet["A33"].font = Font(bold=True)
-sheet['A34'] = 'Datum'
-sheet["A34"].font = Font(bold=True)
-sheet['B34'] = 'Popis'
-sheet["B34"].font = Font(bold=True)
-sheet['E34'] = 'Plné'
-sheet["E34"].font = Font(bold=True)
-sheet['F34'] = 'Snížené'
-sheet["F34"].font = Font(bold=True)
-sheet['D42'] = 'Celkem:'
-sheet['D43'] = 'Kapesné:'
-sheet['F43'] = 'xxxxxxx'
-sheet["F43"].alignment = Alignment(
-    horizontal="center",
-    vertical="center"
-)
+headers = ["Bod", "Místo", "Datum", "Čas", "Doba", "Jídla"]
+for col_letter, txt in zip("ABCDEF", headers):
+    c = ws[f"{col_letter}10"]
+    c.value = txt
 
-sheet['A45'] = 'Ubytování'
-sheet["A45"].font = Font(bold=True)
-sheet['A46'] = 'Datum'
-sheet["A46"].font = Font(bold=True)
-sheet['B46'] = 'Popis'
-sheet["B46"].font = Font(bold=True)
-sheet['E46'] = 'Doklad č.'
-sheet["E46"].font = Font(bold=True)
-sheet['F46'] = 'Částka'
-sheet["F46"].font = Font(bold=True)
-sheet['E52'] = 'Celkem:'
+# Naklady
+ws["B30"] = "Náklady"
+ws["B30"].alignment = Alignment(horizontal="center", vertical="center")
 
-sheet['A54'] = 'Ostatní výdaje'
-sheet["A54"].font = Font(bold=True)
-sheet['A55'] = 'Datum'
-sheet["A55"].font = Font(bold=True)
-sheet['B55'] = 'Popis'
-sheet["B55"].font = Font(bold=True)
-sheet['E55'] = 'Doklad č.'
-sheet["E55"].font = Font(bold=True)
-sheet['F55'] = 'Částka'
-sheet["F55"].font = Font(bold=True)
-sheet['E62'] = 'Celkem:'
+ws["A31"] = "Stravné"
+headers = ["Den", "Popis", "Plné CZ", "Plné za.", "Celk. / den"]
+for col_letter, txt in zip("ABDEF", headers):
+    c = ws[f"{col_letter}32"]
+    c.value = txt
+ws["C43"] = "Celkem:"
+ws["C44"] = "Kapesne:"
+ws["D44"] = "xxxxxxx"
+ws["F44"] = "xxxxxxx"
 
-# Footer
-sheet['A64'] = 'Zúčtováno dne:'
-sheet['A65'] = 'Podpis'
-sheet["E64"] = 'Záloha'
-sheet['C65'] = 'Mezisoučet:'
-sheet["C65"].font = Font(italic=True)
-sheet["E65"] = 'Náklady'
-sheet['E66'] = 'K vyplacení:'
-sheet["E66"].font = Font(bold=True)
 
-wb.save('../output/spam.xlsx')
+ws["A46"] = "Ubytování"
+headers = ["Datum", "Popis", "Doklad č.", "Částka"]
+for col_letter, txt in zip("ABEF", headers):
+    c = ws[f"{col_letter}47"]
+    c.value = txt
+ws["E53"] = "Celkem:"
+
+ws["A54"] = "Ostatní"
+headers = ["Datum", "Popis", "Doklad č.", "Částka"]
+for col_letter, txt in zip("ABEF", headers):
+    c = ws[f"{col_letter}55"]
+    c.value = txt
+ws["E61"] = "Celkem:"
+
+# --- Final counts ---
+ws["E63"] = "Záloha:"
+ws["A63"] = "Zúčtováno dne:"
+ws["A64"] = "Podpis:"
+ws["C64"] = "Mezisoučet:"
+ws["E64"] = "Náklady:"
+ws["E65"] = "K vyplacení:"
+
+# --- Save ---
+os.makedirs("../output", exist_ok=True)
+out_path = "../output/spam.xlsx"
+wb.save(out_path)
+print("Excel saved to:", os.path.abspath(out_path))
