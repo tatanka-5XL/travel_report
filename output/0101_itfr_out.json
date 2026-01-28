@@ -14,10 +14,23 @@
           "amount": 0.0
         },
         {
+          "country": "AT",
+          "currency": "EUR",
+          "exch_rate": null,
+          "time_hours": 7.92,
+          "band": null,
+          "meals": null,
+          "base": null,
+          "base_czk": 0,
+          "reduction_percent": 0,
+          "amount": 0,
+          "amount_czk": 0
+        },
+        {
           "country": "IT",
           "currency": "EUR",
           "exch_rate": 24.285,
-          "time_hours": 17.25,
+          "time_hours": 9.33,
           "band": "12_to_18",
           "meals": 0,
           "base": 36.63,
@@ -27,27 +40,17 @@
           "amount_czk": 889.56
         }
       ],
-      "comment": "CZ 0.83h | IT 17.25h",
+      "comment": "CZ 0.83h | Dominant country: IT - total 17.25h",
       "total_perdiem_czk": 889.56
     },
     {
       "date": "13/01",
       "segments": [
         {
-          "country": "CZ",
-          "currency": "CZK",
-          "time_hours": 0.0,
-          "band": "under_5",
-          "meals": 0,
-          "base": 0.0,
-          "reduction_percent": null,
-          "amount": 0.0
-        },
-        {
           "country": "IT",
           "currency": "EUR",
           "exch_rate": 24.285,
-          "time_hours": 24.0,
+          "time_hours": 15.0,
           "band": "over_18",
           "meals": 1,
           "base": 55.0,
@@ -55,25 +58,28 @@
           "reduction_percent": 25.0,
           "amount": 41.25,
           "amount_czk": 1001.76
+        },
+        {
+          "country": "FR",
+          "currency": "EUR",
+          "exch_rate": null,
+          "time_hours": 9.0,
+          "band": null,
+          "meals": null,
+          "base": null,
+          "base_czk": 0,
+          "reduction_percent": 0,
+          "amount": 0,
+          "amount_czk": 0
         }
       ],
-      "comment": "CZ 0.00h | IT 24.00h (1 meal: -25.0%)",
+      "comment": "Dominant country: IT - total 24.00h (1 meal: -25.0%)",
       "total_perdiem_czk": 1001.76
     },
     {
       "date": "14/01",
       "segments": [
         {
-          "country": "CZ",
-          "currency": "CZK",
-          "time_hours": 0.0,
-          "band": "under_5",
-          "meals": 0,
-          "base": 0.0,
-          "reduction_percent": null,
-          "amount": 0.0
-        },
-        {
           "country": "FR",
           "currency": "EUR",
           "exch_rate": 24.285,
@@ -87,23 +93,13 @@
           "amount_czk": 910.69
         }
       ],
-      "comment": "CZ 0.00h | FR 24.00h (1 meal: -25.0%)",
+      "comment": "Dominant country: FR - total 24.00h (1 meal: -25.0%)",
       "total_perdiem_czk": 910.69
     },
     {
       "date": "15/01",
       "segments": [
         {
-          "country": "CZ",
-          "currency": "CZK",
-          "time_hours": 0.0,
-          "band": "under_5",
-          "meals": 0,
-          "base": 0.0,
-          "reduction_percent": null,
-          "amount": 0.0
-        },
-        {
           "country": "FR",
           "currency": "EUR",
           "exch_rate": 24.285,
@@ -117,7 +113,7 @@
           "amount_czk": 910.69
         }
       ],
-      "comment": "CZ 0.00h | FR 24.00h (1 meal: -25.0%)",
+      "comment": "Dominant country: FR - total 24.00h (1 meal: -25.0%)",
       "total_perdiem_czk": 910.69
     },
     {
@@ -137,7 +133,7 @@
           "country": "FR",
           "currency": "EUR",
           "exch_rate": 24.285,
-          "time_hours": 20.17,
+          "time_hours": 15.75,
           "band": "over_18",
           "meals": 1,
           "base": 50.0,
@@ -145,9 +141,22 @@
           "reduction_percent": 25.0,
           "amount": 37.5,
           "amount_czk": 910.69
+        },
+        {
+          "country": "DE",
+          "currency": "EUR",
+          "exch_rate": null,
+          "time_hours": 4.42,
+          "band": null,
+          "meals": null,
+          "base": null,
+          "base_czk": 0,
+          "reduction_percent": 0,
+          "amount": 0,
+          "amount_czk": 0
         }
       ],
-      "comment": "CZ 3.83h | FR 20.17h (1 meal: -25.0%)",
+      "comment": "CZ 3.83h | Dominant country: FR - total 20.17h (1 meal: -25.0%)",
       "total_perdiem_czk": 910.69
     },
     {
@@ -167,5 +176,11 @@
       "comment": "CZ 14.83h (1 meal: -35.0%)",
       "total_perdiem_czk": 184.6
     }
-  ]
+  ],
+  "totals": {
+    "total_perdiems_cz": 184.6,
+    "total_perdiems_foreign": 4623.38,
+    "total_pocket_money": 2347.19,
+    "total_to_be_paid": 7155.17
+  }
 }

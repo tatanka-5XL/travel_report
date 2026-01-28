@@ -6,8 +6,8 @@
   },
   "trip_info": {
     "trip_number": 126,
-    "Trip description": "Tristone IT + Akwel FR",
-    "Target locations": "Torino IT, Vannes FR",
+    "trip_description": "Tristone IT + Akwel FR",
+    "target_locations": "Torino IT, Vannes FR",
     "transport": {
       "mode": "Company Car",
       "vehicle_registration": "3BF 3073"

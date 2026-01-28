@@ -80,8 +80,8 @@ data["employee"] = {
 # --- Trip info ---
 data["trip_info"] = {
     "trip_number": ask_int("Trip number"),
-    "Trip description": ask("Trip description"),
-    "Target locations": ask("Target locations"),
+    "trip_description": ask("Trip description"),
+    "target_locations": ask("Target locations"),
     "transport": {
         "mode": ask("Transport mode", "Company Car"),
         "vehicle_registration": ask("Vehicle registration", "3BF 3073"),

@@ -138,7 +138,7 @@ def build_days(json_data: dict) -> list[dict]:
 # Main: load input + settings
 # =========================
 
-default_file = "trep.json"
+default_file = "0101_itfr.json"
 filename = input(f"Input JSON [{default_file}]: ").strip() or default_file
 input_path = os.path.join("..", "input", filename)
 
@@ -184,6 +184,12 @@ if "CZK" not in rates_by_currency: # Safety check only
 # Per diem calculation INTO segments
 # =========================
 
+total_perdiems_cz = 0
+total_perdiems_foreign_base = 0
+total_perdiems_foreign_reduced = 0
+total_accomodation = 0
+total_others = 0
+
 for day in days:
     new_segments = []
     comment_parts = []
@@ -191,49 +197,53 @@ for day in days:
 
     # ---------- CZ ----------
     cz_seg = next((s for s in day["segments"] if s.get("country") == "CZ"), None)
+
     cz_h = float(cz_seg.get("time_hours", 0) or 0) if cz_seg else 0.0
     cz_m = int(cz_seg.get("meals", 0) or 0) if cz_seg else 0
 
-    cz_k = cz_band(cz_h)
+    # Only create CZ output segment if there is ANY time in CZ
+    if cz_h > 0:
+        cz_k = cz_band(cz_h)
 
-    if cz_k is None:
-        cz_base = 0.0
-        cz_red = None
-        cz_amt = 0.0
-        cz_band_label = "under_5"
-    else:
-        cz_base = float(cz_rates[cz_k])
-        cz_red = float(cz_reduce[cz_k])
-        cz_amt = reduce_meal(cz_base, cz_red, cz_m)
-        cz_band_label = cz_k
+        if cz_k is None:
+            cz_base = 0.0
+            cz_red = None
+            cz_amt = 0.0
+            cz_band_label = "under_5"
+        else:
+            cz_base = float(cz_rates[cz_k])
+            cz_red = float(cz_reduce[cz_k])
+            cz_amt = reduce_meal(cz_base, cz_red, cz_m)
+            cz_band_label = cz_k
 
+        new_segments.append({
+            "country": "CZ",
+            "currency": "CZK",
+            "time_hours": round(cz_h, 2),
+            "band": cz_band_label,
+            "meals": cz_m,
+            "base": round(cz_base, 2),
+            "reduction_percent": cz_red,
+            "amount": round(cz_amt, 2),
+        })
 
-    new_segments.append({
-        "country": "CZ",
-        "currency": "CZK",
-        "time_hours": round(cz_h, 2),
-        "band": cz_band_label,
-        "meals": cz_m,
-        "base": round(cz_base, 2),
-        "reduction_percent": cz_red,
-        "amount": round(cz_amt, 2),
-    })
+        cz_comment = f"CZ {cz_h:.2f}h"
+        if cz_red is not None and cz_m > 0:
+            cz_comment += f" ({cz_m} meal{'s' if cz_m > 1 else ''}: -{cz_red}%)"
+        comment_parts.append(cz_comment)
 
-    cz_comment = f"CZ {cz_h:.2f}h"
-    if cz_red is not None and cz_m > 0:
-        cz_comment += f" ({cz_m} meal{'s' if cz_m > 1 else ''}: -{cz_red}%)"
-    comment_parts.append(cz_comment)
-    
-    total_perdiem_czk += cz_amt
+        total_perdiem_czk += cz_amt
+        total_perdiems_cz += total_perdiem_czk
 
     # ---------- FOREIGN ----------
     foreign_segs = [s for s in day["segments"] if s.get("country") != "CZ"]
+    
     if foreign_segs:
         total_h = sum(float(s.get("time_hours", 0) or 0) for s in foreign_segs)
         total_m = sum(int(s.get("meals", 0) or 0) for s in foreign_segs)
 
         dominant = max(foreign_segs, key=lambda s: float(s.get("time_hours", 0) or 0))
-        country = (dominant.get("country") or "").strip().upper()
+        dominant_country = (dominant.get("country") or "").strip().upper()
 
         band = foreign_band(total_h)
 
@@ -241,41 +251,60 @@ for day in days:
         red = None
         base = 0.0
         amt = 0.0
-        cur = foreign_rates.get(country, {}).get("currency")
+        dominant_cur = foreign_rates.get(dominant_country, {}).get("currency")
 
         # block rule: if CZ >=5h and foreign <5h => 0
         blocked = (cz_h >= 5 and total_h < 5)
 
-        if country and country not in foreign_rates:
-            raise KeyError(f"No foreign per diem rate in settings.json for country: {country}")
+        if dominant_country not in foreign_rates:
+            raise KeyError(f"No foreign per diem rate in settings.json for country: {dominant_country}")
 
         if (band is None) or blocked:
             # keep zeros
             pass
         else:
-            daily_rate = float(foreign_rates[country]["rate"])
-            cur = foreign_rates[country]["currency"]
+            daily_rate = float(foreign_rates[dominant_country]["rate"])
+            dominant_cur = foreign_rates[dominant_country]["currency"]
             pct = float(foreign_pct[band])            # e.g. 100/66/33
             base = round(daily_rate * (pct / 100.0), 2)
             red = float(foreign_reduce.get(band, 0))  # % per meal (can be 0)
             amt = reduce_meal(base, red, total_m)
 
+        for seg in foreign_segs:
+            if seg["country"] == dominant_country:
+                new_segments.append({
+                    "country": seg["country"],
+                    "currency": dominant_cur,
+                    "exch_rate": rates_by_currency[dominant_cur],
+                    "time_hours": round(seg["time_hours"], 2),
+                    "band": ("blocked_cz>=5_foreign<5" if blocked else (band or "under_1")),
+                    "meals": total_m,
+                    "base": round(base, 2),
+                    "base_czk": round(base*rates_by_currency[dominant_cur], 2),
+                    "reduction_percent": (red if (red is not None and total_m > 0) else None),
+                    "amount": round(amt, 2),
+                    "amount_czk": round(amt * rates_by_currency[dominant_cur], 2)
+                })
+                total_perdiems_foreign_base += base * rates_by_currency[dominant_cur]
+                total_perdiems_foreign_reduced += amt * rates_by_currency[dominant_cur]
+            else:
+                country = seg["country"]
+                cur = foreign_rates.get(country, {}).get("currency")
+                new_segments.append({
+                    "country": country,
+                    "currency": cur,
+                    "exch_rate": None,
+                    "time_hours": round(seg["time_hours"],2),
+                    "band": None,
+                    "meals": None,
+                    "base": None,
+                    "base_czk": 0,
+                    "reduction_percent": 0,
+                    "amount": 0,
+                    "amount_czk": 0
+                })
 
-        new_segments.append({
-            "country": country,
-            "currency": cur,
-            "exch_rate": rates_by_currency[cur],
-            "time_hours": round(total_h, 2),
-            "band": ("blocked_cz>=5_foreign<5" if blocked else (band or "under_1")),
-            "meals": total_m,
-            "base": round(base, 2),
-            "base_czk": round(base*rates_by_currency[cur], 2),
-            "reduction_percent": (red if (red is not None and total_m > 0) else None),
-            "amount": round(amt, 2),
-            "amount_czk": round(amt * rates_by_currency[cur], 2)
-        })
-
-        f_comment = f"{country} {total_h:.2f}h"
+        f_comment = f"Dominant country: {dominant_country} - total {total_h:.2f}h"
         if (red is not None) and total_m > 0 and red != 0:
             f_comment += f" ({total_m} meal{'s' if total_m > 1 else ''}: -{red}%)"
         comment_parts.append(f_comment)
@@ -286,13 +315,30 @@ for day in days:
     day["comment"] = " | ".join(comment_parts)
     day["total_perdiem_czk"] = round(total_perdiem_czk, 2)
 
+
+
+
+total_pocket_money = total_perdiems_foreign_base * 0.4
+total_to_be_paid = total_perdiems_cz + total_perdiems_foreign_reduced + total_pocket_money + total_accomodation + total_others
+
+totals = {
+    "total_perdiems_cz": round(total_perdiems_cz, 2),
+    "total_perdiems_foreign": round(total_perdiems_foreign_reduced, 2),
+    "total_pocket_money": round(total_pocket_money, 2),
+    "total_to_be_paid": round(total_to_be_paid, 2)
+    }
+
+
 # =========================
 # Output
 # =========================
 
-output = {"days": days}
+output = {
+    "days": days,
+    "totals": totals
+    }
 
-output_path = os.path.join("..", "output", filename.replace(".json", "_days.json"))
+output_path = os.path.join("..", "output", filename.replace(".json", "_out.json"))
 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
 with open(output_path, "w", encoding="utf-8") as f:
@@ -355,12 +401,18 @@ bold = Font(name="Helvetica", size=10, bold=True)
 ws["A1"] = "Vyúčtování služební cesty"
 ws["C1"] = "Profisolv, s.r.o."  
 ws["E1"] = "Číslo:"
+ws["F1"] = data["report_id"]
 ws["E2"] = "List:"
+ws["F2"] = "1 z 1"
 
 ws["A4"] = "Pracovník:"
+ws["B4"] = data["employee"]["name"]
 ws["A5"] = "Účel cesty:"
+ws["B5"] = data["trip_info"]["trip_description"]
 ws["A6"] = "Prostředek:"
+ws["B6"] = data["trip_info"]["transport"]["mode"]
 ws["A7"] = "Trasa:"
+ws["B7"] = data["trip_info"]["target_locations"]
 
 
 # Popis trasy
@@ -371,6 +423,7 @@ headers = ["Bod", "Místo", "Datum", "Čas", "Doba", "Jídla"]
 for col_letter, txt in zip("ABCDEF", headers):
     c = ws[f"{col_letter}10"]
     c.value = txt
+
 
 # Naklady
 ws["B30"] = "Náklady"
