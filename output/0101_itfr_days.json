@@ -1,0 +1,171 @@
+{
+  "days": [
+    {
+      "date": "12/01",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 0.83,
+          "band": "under_5",
+          "meals": 0,
+          "base": 0.0,
+          "reduction_percent": null,
+          "amount": 0.0
+        },
+        {
+          "country": "IT",
+          "currency": "EUR",
+          "exch_rate": 24.285,
+          "time_hours": 17.25,
+          "band": "12_to_18",
+          "meals": 0,
+          "base": 36.63,
+          "base_czk": 889.56,
+          "reduction_percent": null,
+          "amount": 36.63,
+          "amount_czk": 889.56
+        }
+      ],
+      "comment": "CZ 0.83h | IT 17.25h",
+      "total_perdiem_czk": 889.56
+    },
+    {
+      "date": "13/01",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 0.0,
+          "band": "under_5",
+          "meals": 0,
+          "base": 0.0,
+          "reduction_percent": null,
+          "amount": 0.0
+        },
+        {
+          "country": "IT",
+          "currency": "EUR",
+          "exch_rate": 24.285,
+          "time_hours": 24.0,
+          "band": "over_18",
+          "meals": 1,
+          "base": 55.0,
+          "base_czk": 1335.67,
+          "reduction_percent": 25.0,
+          "amount": 41.25,
+          "amount_czk": 1001.76
+        }
+      ],
+      "comment": "CZ 0.00h | IT 24.00h (1 meal: -25.0%)",
+      "total_perdiem_czk": 1001.76
+    },
+    {
+      "date": "14/01",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 0.0,
+          "band": "under_5",
+          "meals": 0,
+          "base": 0.0,
+          "reduction_percent": null,
+          "amount": 0.0
+        },
+        {
+          "country": "FR",
+          "currency": "EUR",
+          "exch_rate": 24.285,
+          "time_hours": 24.0,
+          "band": "over_18",
+          "meals": 1,
+          "base": 50.0,
+          "base_czk": 1214.25,
+          "reduction_percent": 25.0,
+          "amount": 37.5,
+          "amount_czk": 910.69
+        }
+      ],
+      "comment": "CZ 0.00h | FR 24.00h (1 meal: -25.0%)",
+      "total_perdiem_czk": 910.69
+    },
+    {
+      "date": "15/01",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 0.0,
+          "band": "under_5",
+          "meals": 0,
+          "base": 0.0,
+          "reduction_percent": null,
+          "amount": 0.0
+        },
+        {
+          "country": "FR",
+          "currency": "EUR",
+          "exch_rate": 24.285,
+          "time_hours": 24.0,
+          "band": "over_18",
+          "meals": 1,
+          "base": 50.0,
+          "base_czk": 1214.25,
+          "reduction_percent": 25.0,
+          "amount": 37.5,
+          "amount_czk": 910.69
+        }
+      ],
+      "comment": "CZ 0.00h | FR 24.00h (1 meal: -25.0%)",
+      "total_perdiem_czk": 910.69
+    },
+    {
+      "date": "16/01",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 3.83,
+          "band": "under_5",
+          "meals": 0,
+          "base": 0.0,
+          "reduction_percent": null,
+          "amount": 0.0
+        },
+        {
+          "country": "FR",
+          "currency": "EUR",
+          "exch_rate": 24.285,
+          "time_hours": 20.17,
+          "band": "over_18",
+          "meals": 1,
+          "base": 50.0,
+          "base_czk": 1214.25,
+          "reduction_percent": 25.0,
+          "amount": 37.5,
+          "amount_czk": 910.69
+        }
+      ],
+      "comment": "CZ 3.83h | FR 20.17h (1 meal: -25.0%)",
+      "total_perdiem_czk": 910.69
+    },
+    {
+      "date": "17/01",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 14.83,
+          "band": "12_to_18",
+          "meals": 1,
+          "base": 284.0,
+          "reduction_percent": 35.0,
+          "amount": 184.6
+        }
+      ],
+      "comment": "CZ 14.83h (1 meal: -35.0%)",
+      "total_perdiem_czk": 184.6
+    }
+  ]
+}

@@ -38,7 +38,8 @@
             "12_to_18": 35,
             "over_18": 25
         },
-    "pocket_money_percent": 40,
+        "pocket_money_percent": 40
+    },
     "notes": [
         "Pokud se jedná o jednodenní zahraniční pracovní cestu, doba před výjezdem z ČR a doba po návratu do ČR v jednom kalendářním dni se sčítá.",
         "Za tuzemskou část pracovní cesty má zaměstnanec nárok na stravné jako při klasické tuzemské pracovní cestě, tedy po pěti hodinách",
@@ -53,7 +54,5 @@
         "4 hod CZ + 1 hod PL -> pouze polske stravne",
         "6 hod CZ + 6 hod PL -> ceske i polske stravne",
         "6 hod SK + 8 hod PL -> stravne za 14 hodin s PL rate (tou, ktera je vyssi)"
-        ]
-    }
-
+    ]    
 }

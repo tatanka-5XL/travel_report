@@ -24,428 +24,276 @@ from openpyxl.worksheet.pagebreak import Break
 # Helpers
 # =========================
 
-def to_isodate(year_str: str, mmdd: str) -> datetime:
-    """year + MMDD -> datetime date at 00:00"""
-    return datetime.strptime(f"{year_str}{mmdd}", "%Y%m%d")
+def to_isodate(year: str, mmdd: str) -> datetime:
+    return datetime.strptime(f"{year}{mmdd}", "%Y%m%d")
 
-def to_isodatetime(year_str: str, mmdd: str, hhmm: str) -> datetime:
-    """year + MMDD + HHMM -> datetime"""
-    return datetime.strptime(f"{year_str}{mmdd}{hhmm}", "%Y%m%d%H%M")
+def to_isodatetime(year: str, mmdd: str, hhmm: str) -> datetime:
+    return datetime.strptime(f"{year}{mmdd}{hhmm}", "%Y%m%d%H%M")
 
-def to_stringday(date_dt: datetime) -> str:
-    return date_dt.strftime("%d/%m")
+def diff_hours(a: datetime, b: datetime) -> float:
+    return (b - a).total_seconds() / 3600
 
-def diff_in_hours(iso_start: datetime, iso_end: datetime) -> float:
-    delta = iso_end - iso_start
-    return delta.total_seconds() / 3600
-
-def cz_band(hours: float):
-    if hours < 5:
+def cz_band(h: float):
+    if h < 5:
         return None
-    if hours < 12:
+    if h < 12:
         return "5_to_12"
-    if hours < 18:
+    if h < 18:
         return "12_to_18"
     return "over_18"
 
-def foreign_band(hours: float):
-    if hours < 1:
+def foreign_band(h: float):
+    if h < 1:
         return None
-    if hours < 12:
+    if h < 12:
         return "1_to_12"
-    if hours < 18:
+    if h < 18:
         return "12_to_18"
     return "over_18"
 
-def apply_meal_reduction(base_amount: float, pct_per_meal: float, meals: int) -> float:
-    factor = 1.0 - (meals * (pct_per_meal / 100.0))
-    if factor < 0:
-        factor = 0.0
-    return base_amount * factor
+def reduce_meal(base: float, pct: float, meals: int) -> float:
+    """Reduce base by pct per meal (cap at 0)."""
+    if pct is None:
+        return round(base, 2)
+    f = 1 - (meals * pct / 100.0)
+    return round(max(0.0, base * f), 2)
 
-def build_trip_from_waypoints(json_data: dict) -> list[dict]:
-    """
-    Build trip overview (per day, per country hours + meals) from waypoints,
-    with special midnight rules:
+# =========================
+# Build trip days from waypoints (with midnight rules)
+# =========================
 
-    - First trip day: starts at first waypoint time.
-    - Middle days: start at 00:00 in first waypoint's country.
-    - Last trip day: ends at last waypoint time.
-    - Middle days: end at 24:00 in last waypoint's country.
-    """
+def build_days(json_data: dict) -> list[dict]:
     year = str(json_data["year"])
-    waypoints = json_data.get("waypoints", {})
+    wps_by_day = json_data["waypoints"]
 
-    # sort day keys (MMDD) within same year
-    day_keys = sorted(waypoints.keys(), key=lambda x: int(x))
+    day_keys = sorted(wps_by_day.keys(), key=int)
     if not day_keys:
         return []
 
-    first_day_key = day_keys[0]
-    last_day_key = day_keys[-1]
-
-    trip_days: list[dict] = []
+    first_day, last_day = day_keys[0], day_keys[-1]
+    days: list[dict] = []
 
     for mmdd in day_keys:
-        wps = waypoints.get(mmdd) or []
+        wps = wps_by_day.get(mmdd) or []
         if not wps:
             continue
 
-        day_date = to_isodate(year, mmdd)           # 00:00
-        day_start = day_date
-        day_end = day_date + timedelta(days=1)      # next day 00:00
-        day_str = to_stringday(day_date)
+        day_start = to_isodate(year, mmdd)              # 00:00
+        day_end = day_start + timedelta(days=1)         # next 00:00
 
-        # aggregate per country
-        agg: dict[str, dict] = {}  # country -> {"country":..., "time_hours":..., "meals":...}
+        agg: dict[str, dict] = {}
 
-        # meals: sum per country from waypoint entries
-        for wp in wps:
-            c = (wp.get("country") or "").strip().upper()
-            m = int(wp.get("meals", 0) or 0)
-            if not c:
-                continue
-            agg.setdefault(c, {"country": c, "time_hours": 0.0, "meals": 0})
-            agg[c]["meals"] += m
-
-        # parse waypoint datetimes for this day
         def wp_dt(wp):
             return to_isodatetime(year, mmdd, str(wp["time"]))
 
-        # ---- Start-of-day segment rule ----
-        first_wp = wps[0]
-        first_country = (first_wp.get("country") or "").strip().upper()
-        first_time = wp_dt(first_wp)
+        # meals
+        for wp in wps:
+            c = (wp.get("country") or "").strip().upper()
+            if not c:
+                continue
+            agg.setdefault(c, {"country": c, "time_hours": 0.0, "meals": 0})
+            agg[c]["meals"] += int(wp.get("meals", 0) or 0)
 
-        if mmdd != first_day_key:
-            # Middle (or last) day: add time from 00:00 to first waypoint in first waypoint country
-            if first_country and first_time > day_start:
-                hours = diff_in_hours(day_start, first_time)
-                agg.setdefault(first_country, {"country": first_country, "time_hours": 0.0, "meals": 0})
-                agg[first_country]["time_hours"] += hours
-        # First day: do NOT add 00:00→first waypoint
+        # start-of-day extension (middle + last days): 00:00 -> first waypoint
+        if mmdd != first_day:
+            first_wp = wps[0]
+            c = (first_wp.get("country") or "").strip().upper()
+            if c:
+                agg.setdefault(c, {"country": c, "time_hours": 0.0, "meals": 0})
+                h = diff_hours(day_start, wp_dt(first_wp))
+                agg[c]["time_hours"] += max(0.0, h)
 
-        # ---- Between-waypoints segments ----
+        # between-waypoints
         for i in range(len(wps) - 1):
-            cur = wps[i]
-            nxt = wps[i + 1]
-
-            cur_country = (cur.get("country") or "").strip().upper()
-            if not cur_country:
+            cur, nxt = wps[i], wps[i + 1]
+            c = (cur.get("country") or "").strip().upper()
+            if not c:
                 continue
 
-            cur_dt = wp_dt(cur)
-            nxt_dt = wp_dt(nxt)
+            a, b = wp_dt(cur), wp_dt(nxt)
+            if b < a:
+                b += timedelta(days=1)
 
-            # If the list crosses midnight inside same MMDD (rare), treat next as next day
-            if nxt_dt < cur_dt:
-                nxt_dt = nxt_dt + timedelta(days=1)
+            h = diff_hours(a, b)
+            agg.setdefault(c, {"country": c, "time_hours": 0.0, "meals": 0})
+            agg[c]["time_hours"] += max(0.0, h)
 
-            # Clamp to this day's window just in case
-            seg_start = max(cur_dt, day_start)
-            seg_end = min(nxt_dt, day_end)
+        # end-of-day extension (first + middle days): last waypoint -> 24:00
+        if mmdd != last_day:
+            last_wp = wps[-1]
+            c = (last_wp.get("country") or "").strip().upper()
+            if c:
+                agg.setdefault(c, {"country": c, "time_hours": 0.0, "meals": 0})
+                h = diff_hours(wp_dt(last_wp), day_end)
+                agg[c]["time_hours"] += max(0.0, h)
 
-            if seg_end > seg_start:
-                hours = diff_in_hours(seg_start, seg_end)
-                agg.setdefault(cur_country, {"country": cur_country, "time_hours": 0.0, "meals": 0})
-                agg[cur_country]["time_hours"] += hours
+        days.append({
+            "date": day_start.strftime("%d/%m"),
+            "segments": list(agg.values())
+        })
 
-        # ---- End-of-day segment rule ----
-        last_wp = wps[-1]
-        last_country = (last_wp.get("country") or "").strip().upper()
-        last_time = wp_dt(last_wp)
-
-        if mmdd != last_day_key:
-            # Middle (or first) day: extend from last waypoint to 24:00 in last waypoint country
-            if last_country and day_end > last_time:
-                hours = diff_in_hours(last_time, day_end)
-                agg.setdefault(last_country, {"country": last_country, "time_hours": 0.0, "meals": 0})
-                agg[last_country]["time_hours"] += hours
-        # Last day: do NOT add last waypoint → midnight
-
-        day_obj = {"date": day_str, "segments": list(agg.values())}
-        trip_days.append(day_obj)
-
-    return trip_days
-
+    return days
 
 # =========================
-# Ask for input file + load JSON
+# Main: load input + settings
 # =========================
 
 default_file = "trep.json"
-filename = input(f"Input JSON filename [{default_file}]: ").strip() or default_file
-
+filename = input(f"Input JSON [{default_file}]: ").strip() or default_file
 input_path = os.path.join("..", "input", filename)
+
 if not os.path.isfile(input_path):
     raise FileNotFoundError(f"Input file not found: {input_path}")
 
-with open(input_path, "r", encoding="utf-8") as f:
-    json_file_data = json.load(f)
-
-year = str(json_file_data["year"])
-
-
-# =========================
-# Build day overview (trip) from WAYPOINTS
-# =========================
-
-trip = build_trip_from_waypoints(json_file_data)
-
-
-# =========================
-# Load settings
-# =========================
+with open(input_path, encoding="utf-8") as f:
+    data = json.load(f)
 
 settings_path = os.path.join("..", "config", "settings.json")
 if not os.path.isfile(settings_path):
     raise FileNotFoundError(f"Settings file not found: {settings_path}")
 
-with open(settings_path, "r", encoding="utf-8") as f:
+with open(settings_path, encoding="utf-8") as f:
     settings = json.load(f)
 
+days = build_days(data)
+
 cz_rates = settings["cz"]["per_diems_czk"]
-cz_meal_reduce = settings["cz"]["lowering_percents_per_meal"]
+cz_reduce = settings["cz"]["lowering_percents_per_meal"]
 
-foreign_rates_raw = settings["foreign"]["per_diems"]
-foreign_percents = settings["foreign"]["per_diems_percents"]
-foreign_meal_reduce = settings["foreign"]["lowering_percents_per_meal"]
-pocket_percent = float(settings["foreign"].get("pocket_money_percent", 40))
-
-# Build mapping: "PL" -> {"rate": 50, "currency": "EUR"} from keys like "PL_eur"
 foreign_rates = {}
-for k, v in foreign_rates_raw.items():
-    country, cur = k.split("_", 1)
-    foreign_rates[country] = {"rate": float(v), "currency": cur.upper()}
+for k, v in settings["foreign"]["per_diems"].items():
+    c, cur = k.split("_", 1)
+    foreign_rates[c.strip().upper()] = {"rate": float(v), "currency": cur.strip().upper()}
 
-# Exchange rates STRICTLY from input JSON (CNB trip start day)
-rates_czk = {}
-for c in json_file_data["bank_rates"]["currencies"]:
-    code = (c["code"] or "").upper().strip()
-    rates_czk[code] = float(c["exchange_rate"])
+foreign_pct = settings["foreign"]["per_diems_percents"]
+foreign_reduce = settings["foreign"]["lowering_percents_per_meal"]
 
-if "CZK" not in rates_czk:
-    raise KeyError(
-        "bank_rates.currencies must include CZK with exchange_rate = 1")
+# Exchange rates from input JSON (CNB)
+rates_by_currency = {}
 
+for item in data.get("bank_rates", {}).get("currencies", []):
+    code = (item.get("code") or "").strip().upper()
+    rate = float(item.get("exchange_rate", 0) or 0)
+    if code:
+        rates_by_currency[code] = rate
+
+if "CZK" not in rates_by_currency: # Safety check only
+    rates_by_currency["CZK"] = 1.0
 
 # =========================
-# Calculate per diems per day
+# Per diem calculation INTO segments
 # =========================
 
-for day in trip:
-    day["per_diem"] = []
-    comments = []
+for day in days:
+    new_segments = []
+    comment_parts = []
+    total_perdiem_czk = 0
 
     # ---------- CZ ----------
-    cz_seg = next((s for s in day["segments"] if s["country"] == "CZ"), None)
-    cz_hours = float(cz_seg.get("time_hours", 0) or 0) if cz_seg else 0.0
-    cz_meals = int(cz_seg.get("meals", 0) or 0) if cz_seg else 0
+    cz_seg = next((s for s in day["segments"] if s.get("country") == "CZ"), None)
+    cz_h = float(cz_seg.get("time_hours", 0) or 0) if cz_seg else 0.0
+    cz_m = int(cz_seg.get("meals", 0) or 0) if cz_seg else 0
 
-    cz_key = cz_band(cz_hours)
-    if cz_key is None:
-        day["per_diem"].append({
-            "country": "CZ",
-            "currency": "CZK",
-            "band": "under_5",
-            "base": 0,
-            "meals": cz_meals,
-            "reduction_percent_per_meal": None,
-            "amount": 0
-        })
-        if cz_seg:
-            comments.append(f"CZ: {cz_hours:.2f}h <5h ⇒ 0 CZK.")
+    cz_k = cz_band(cz_h)
+
+    if cz_k is None:
+        cz_base = 0.0
+        cz_red = None
+        cz_amt = 0.0
+        cz_band_label = "under_5"
     else:
-        cz_base = float(cz_rates[cz_key])
-        cz_pct = float(cz_meal_reduce[cz_key])
-        cz_final = apply_meal_reduction(cz_base, cz_pct, cz_meals)
-        cz_lowered = cz_base - cz_final
+        cz_base = float(cz_rates[cz_k])
+        cz_red = float(cz_reduce[cz_k])
+        cz_amt = reduce_meal(cz_base, cz_red, cz_m)
+        cz_band_label = cz_k
 
-        day["per_diem"].append({
-            "country": "CZ",
-            "currency": "CZK",
-            "band": cz_key,
-            "base": cz_base,
-            "meals": cz_meals,
-            "reduction_percent_per_meal": cz_pct,
-            "amount": round(cz_final, 2)
-        })
-        comments.append(
-            f"CZ: {cz_hours:.2f}h ⇒ base {cz_base:.2f} CZK ({cz_key}); "
-            f"meals {cz_meals} lowered {cz_lowered:.2f} ⇒ paid {cz_final:.2f} CZK."
-        )
 
-    # ---------- FOREIGN ----------
-    foreign_segs = [s for s in day["segments"] if s["country"] != "CZ"]
-    if not foreign_segs:
-        day["comment"] = " | ".join(comments)
-        continue
-
-    total_foreign_hours = sum(float(s.get("time_hours", 0) or 0)
-                              for s in foreign_segs)
-    total_foreign_meals = sum(int(s.get("meals", 0) or 0)
-                              for s in foreign_segs)
-
-    # Rule: if CZ >= 5h but foreign < 5h => no foreign per diem
-    if cz_hours >= 5 and total_foreign_hours < 5:
-        day["per_diem"].append({
-            "country": "FOREIGN",
-            "currency": None,
-            "band": "blocked_cz>=5_foreign<5",
-            "base_rate": None,
-            "percent": 0,
-            "base": 0,
-            "foreign_hours_total": round(total_foreign_hours, 2),
-            "meals": total_foreign_meals,
-            "reduction_percent_per_meal": None,
-            "amount": 0,
-            "amount_czk": 0,
-            "exchange_rate_to_czk": None
-        })
-        comments.append(
-            f"FOREIGN: {total_foreign_hours:.2f}h, but CZ {cz_hours:.2f}h ≥5h and foreign <5h ⇒ 0."
-        )
-        day["comment"] = " | ".join(comments)
-        continue
-
-    # dominant foreign country by time (no FX logic for choosing)
-    dominant_seg = max(foreign_segs, key=lambda s: float(
-        s.get("time_hours", 0) or 0))
-    country = dominant_seg["country"]
-
-    if country not in foreign_rates:
-        raise KeyError(
-            f"No foreign per diem rate in settings.json for country: {country}")
-
-    band_key = foreign_band(total_foreign_hours)
-    cur = foreign_rates[country]["currency"]
-    rate = foreign_rates[country]["rate"]
-
-    if band_key is None:
-        day["per_diem"].append({
-            "country": country,
-            "currency": cur,
-            "band": "under_1",
-            "base_rate": rate,
-            "percent": 0,
-            "base": 0,
-            "foreign_hours_total": round(total_foreign_hours, 2),
-            "meals": total_foreign_meals,
-            "reduction_percent_per_meal": None,
-            "amount": 0,
-            "amount_czk": 0,
-            "exchange_rate_to_czk": None
-        })
-        comments.append(
-            f"FOREIGN ({country}): {total_foreign_hours:.2f}h <1h ⇒ 0.")
-        day["comment"] = " | ".join(comments)
-        continue
-
-    percent = float(foreign_percents[band_key])
-    foreign_base = rate * (percent / 100.0)
-
-    red_pct = float(foreign_meal_reduce.get(band_key, 0))
-    foreign_final = apply_meal_reduction(
-        foreign_base, red_pct, total_foreign_meals)
-    foreign_lowered = foreign_base - foreign_final
-
-    foreign_amount = round(foreign_final, 2)
-
-    if cur not in rates_czk:
-        raise KeyError(
-            f"Missing exchange rate for {cur} in input JSON bank_rates.currencies (CNB start-day)."
-        )
-
-    foreign_amount_czk = round(foreign_amount * rates_czk[cur], 2)
-
-    day["per_diem"].append({
-        "country": country,
-        "currency": cur,
-        "band": band_key,
-        "base_rate": rate,
-        "percent": percent,
-        "base": round(foreign_base, 2),
-        "foreign_hours_total": round(total_foreign_hours, 2),
-        "meals": total_foreign_meals,
-        "reduction_percent_per_meal": red_pct,
-        "amount": foreign_amount,
-        "exchange_rate_to_czk": rates_czk[cur],
-        "amount_czk": foreign_amount_czk
+    new_segments.append({
+        "country": "CZ",
+        "currency": "CZK",
+        "time_hours": round(cz_h, 2),
+        "band": cz_band_label,
+        "meals": cz_m,
+        "base": round(cz_base, 2),
+        "reduction_percent": cz_red,
+        "amount": round(cz_amt, 2),
     })
 
-    comments.append(
-        f"FOREIGN ({country}): total {total_foreign_hours:.2f}h ⇒ {band_key} ({percent:.1f}%) "
-        f"base {foreign_base:.2f} {cur}; meals {total_foreign_meals} lowered {foreign_lowered:.2f} ⇒ "
-        f"paid {foreign_final:.2f} {cur}. "
-        f"Converted: {foreign_amount:.2f} {cur} × {rates_czk[cur]:.4f} = {foreign_amount_czk:.2f} CZK."
-    )
+    cz_comment = f"CZ {cz_h:.2f}h"
+    if cz_red is not None and cz_m > 0:
+        cz_comment += f" ({cz_m} meal{'s' if cz_m > 1 else ''}: -{cz_red}%)"
+    comment_parts.append(cz_comment)
+    
+    total_perdiem_czk += cz_amt
 
-    day["comment"] = " | ".join(comments)
+    # ---------- FOREIGN ----------
+    foreign_segs = [s for s in day["segments"] if s.get("country") != "CZ"]
+    if foreign_segs:
+        total_h = sum(float(s.get("time_hours", 0) or 0) for s in foreign_segs)
+        total_m = sum(int(s.get("meals", 0) or 0) for s in foreign_segs)
 
+        dominant = max(foreign_segs, key=lambda s: float(s.get("time_hours", 0) or 0))
+        country = (dominant.get("country") or "").strip().upper()
+
+        band = foreign_band(total_h)
+
+        # defaults so variables always exist
+        red = None
+        base = 0.0
+        amt = 0.0
+        cur = foreign_rates.get(country, {}).get("currency")
+
+        # block rule: if CZ >=5h and foreign <5h => 0
+        blocked = (cz_h >= 5 and total_h < 5)
+
+        if country and country not in foreign_rates:
+            raise KeyError(f"No foreign per diem rate in settings.json for country: {country}")
+
+        if (band is None) or blocked:
+            # keep zeros
+            pass
+        else:
+            daily_rate = float(foreign_rates[country]["rate"])
+            cur = foreign_rates[country]["currency"]
+            pct = float(foreign_pct[band])            # e.g. 100/66/33
+            base = round(daily_rate * (pct / 100.0), 2)
+            red = float(foreign_reduce.get(band, 0))  # % per meal (can be 0)
+            amt = reduce_meal(base, red, total_m)
+
+
+        new_segments.append({
+            "country": country,
+            "currency": cur,
+            "exch_rate": rates_by_currency[cur],
+            "time_hours": round(total_h, 2),
+            "band": ("blocked_cz>=5_foreign<5" if blocked else (band or "under_1")),
+            "meals": total_m,
+            "base": round(base, 2),
+            "base_czk": round(base*rates_by_currency[cur], 2),
+            "reduction_percent": (red if (red is not None and total_m > 0) else None),
+            "amount": round(amt, 2),
+            "amount_czk": round(amt * rates_by_currency[cur], 2)
+        })
+
+        f_comment = f"{country} {total_h:.2f}h"
+        if (red is not None) and total_m > 0 and red != 0:
+            f_comment += f" ({total_m} meal{'s' if total_m > 1 else ''}: -{red}%)"
+        comment_parts.append(f_comment)
+        total_perdiem_czk += (amt * rates_by_currency[cur])
+
+    # ---------- FINAL DAY ----------
+    day["segments"] = new_segments
+    day["comment"] = " | ".join(comment_parts)
+    day["total_perdiem_czk"] = round(total_perdiem_czk, 2)
 
 # =========================
-# Pocket money + totals (CZK)
-#  - pocket money ONLY from FOREIGN
-#  - pocket money is % of FOREIGN per-diem BASES before meal reduction
-#  - foreign bases converted to CZK using CNB start-day rates from input JSON
+# Output
 # =========================
 
-foreign_base_total_czk = 0.0
-per_diem_paid_total_czk = 0.0
+output = {"days": days}
 
-for day in trip:
-    # Sum FOREIGN bases before reductions (convert to CZK)
-    for p in day.get("per_diem", []):
-        cur = p.get("currency")
-        if not cur or cur == "CZK":
-            continue  # only foreign
-        base = float(p.get("base", 0) or 0)
-        if cur not in rates_czk:
-            raise KeyError(
-                f"Missing exchange rate for {cur} in input JSON bank_rates.currencies."
-            )
-        foreign_base_total_czk += base * rates_czk[cur]
-
-    # Sum actually paid per diems in CZK (CZK + foreign)
-    cz_paid = 0.0
-    cz_entry = next((p for p in day.get("per_diem", [])
-                    if p.get("country") == "CZ"), None)
-    if cz_entry:
-        cz_paid = float(cz_entry.get("amount", 0) or 0)
-
-    foreign_paid_czk = 0.0
-    foreign_entry = next((p for p in day.get("per_diem", []) if p.get(
-        "currency") and p.get("currency") != "CZK"), None)
-    if foreign_entry:
-        foreign_paid_czk = float(foreign_entry.get("amount_czk", 0) or 0)
-
-    per_diem_paid_total_czk += (cz_paid + foreign_paid_czk)
-
-pocket_money_czk = round(foreign_base_total_czk * (pocket_percent / 100.0), 2)
-
-summary = {
-    "total_foreign_per_diem_base_czk": round(foreign_base_total_czk, 2),
-    "total_per_diem_paid_czk": round(per_diem_paid_total_czk, 2),
-    "pocket_money_percent": pocket_percent,
-    "total_pocket_money_czk": pocket_money_czk,
-    "total_money_czk": round(per_diem_paid_total_czk + pocket_money_czk, 2),
-}
-
-
-# =========================
-# Output: days + summary
-# =========================
-
-base_name = os.path.splitext(filename)[0]
-output_filename = f"{base_name}_seg.json"
-output_path = os.path.join("..", "output", output_filename)
-
-output = {
-    "days": trip,
-    "summary": summary
-}
-
-print(json.dumps(output, indent=2, ensure_ascii=False))
+output_path = os.path.join("..", "output", filename.replace(".json", "_days.json"))
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
 with open(output_path, "w", encoding="utf-8") as f:
     json.dump(output, f, indent=2, ensure_ascii=False)
@@ -457,12 +305,12 @@ print(f"\nProcessed data saved to {output_path}")
 # Excel sheet generating part
 # ===========================
 
-MAX_ROWS = 50
+MAX_ROWS = 65
 MAX_COLS = 6  # A..F
 
 wb = Workbook()
 ws = wb.active
-ws.title = "Vyúčtování služební cesty"
+ws.title = "Travelrep CZ"
 
 # --- Print setup (A4 portrait, 1 page) ---
 ws.print_area = f"A1:F{MAX_ROWS}"
@@ -529,12 +377,12 @@ ws["B30"] = "Náklady"
 ws["B30"].alignment = Alignment(horizontal="center", vertical="center")
 
 ws["A31"] = "Stravné"
-headers = ["Den", "Popis", "Plné CZ", "Plné za.", "Celk. / den"]
+headers = ["Den", "Popis", "Plné CZ", "Plné zah.", "Celk. den"]
 for col_letter, txt in zip("ABDEF", headers):
     c = ws[f"{col_letter}32"]
     c.value = txt
 ws["C43"] = "Celkem:"
-ws["C44"] = "Kapesne:"
+ws["C44"] = "Kapesné:"
 ws["D44"] = "xxxxxxx"
 ws["F44"] = "xxxxxxx"
 
