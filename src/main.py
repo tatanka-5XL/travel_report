@@ -16,7 +16,7 @@ from datetime import datetime, timedelta
 import json
 import os
 from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment
+from openpyxl.styles import Font, Alignment, Border, Side
 from openpyxl.worksheet.pagebreak import Break
 
 
@@ -57,6 +57,25 @@ def reduce_meal(base: float, pct: float, meals: int) -> float:
         return round(base, 2)
     f = 1 - (meals * pct / 100.0)
     return round(max(0.0, base * f), 2)
+
+def to_mmdd(date_str: str) -> str:
+    # input is usually "DD/MM" -> output "MM/DD"
+    if not date_str or "/" not in date_str:
+        return date_str
+    dd, mm = date_str.split("/", 1)
+    return f"{dd}/{mm}"
+
+def mmdd_to_ddmm(mmdd: str) -> str:
+    """
+    Convert 'MMDD' -> 'DD/MM'
+    Example: '0112' -> '12/01'
+    """
+    if not mmdd or len(mmdd) != 4 or not mmdd.isdigit():
+        return mmdd
+
+    mm = mmdd[:2]
+    dd = mmdd[2:]
+    return f"{dd}/{mm}"
 
 # =========================
 # Build trip days from waypoints (with midnight rules)
@@ -229,7 +248,7 @@ for day in days:
 
         cz_comment = f"CZ {cz_h:.2f}h"
         if cz_red is not None and cz_m > 0:
-            cz_comment += f" ({cz_m} meal{'s' if cz_m > 1 else ''}: -{cz_red}%)"
+            cz_comment += f" ({cz_m} jídl{'a' if cz_m > 1 else 'o'}: -{cz_red}%)"
         comment_parts.append(cz_comment)
 
         total_perdiem_czk += cz_amt
@@ -304,9 +323,9 @@ for day in days:
                     "amount_czk": 0
                 })
 
-        f_comment = f"Dominant country: {dominant_country} - total {total_h:.2f}h"
+        f_comment = f"Hlav. země: {dominant_country} - celk. {total_h:.2f}h"
         if (red is not None) and total_m > 0 and red != 0:
-            f_comment += f" ({total_m} meal{'s' if total_m > 1 else ''}: -{red}%)"
+            f_comment += f" ({total_m} jídl{'a' if total_m > 1 else 'o'}: -{red}%)"
         comment_parts.append(f_comment)
         total_perdiem_czk += (amt * rates_by_currency[cur])
 
@@ -385,7 +404,7 @@ for row in ws.iter_rows(min_row=1, max_row=MAX_ROWS, min_col=1, max_col=MAX_COLS
 
 # Row height
 for r in range(1, MAX_ROWS + 1):
-    ws.row_dimensions[r].height = 12
+    ws.row_dimensions[r].height = 15
 
 # Column widths – fill whole A4 width
 ws.column_dimensions["A"].width = 9.5
@@ -395,15 +414,25 @@ ws.column_dimensions["D"].width = 11.0
 ws.column_dimensions["E"].width = 11.0
 ws.column_dimensions["F"].width = 8.5
 
+# Cell borders - top and bottom, for tables only
+thin = Side(style="thin")
+
+
 # --- Header text ---
 bold = Font(name="Helvetica", size=10, bold=True)
+underline = Font(name="Helvetica", size=10, underline="single")
 
-ws["A1"] = "Vyúčtování služební cesty"
-ws["C1"] = "Profisolv, s.r.o."  
-ws["E1"] = "Číslo:"
+ws["A1"] = "Vyúčtování služební cesty"; ws["A1"].font = bold
+ws["C1"] = "Profisolv, s.r.o."
+ws["C2"] = data["year"]
+ws["E1"] = "Číslo:"; ws["E1"].font = bold
 ws["F1"] = data["report_id"]
-ws["E2"] = "List:"
+ws["E2"] = "List:"; ws["E2"].font = bold
 ws["F2"] = "1 z 1"
+ws["E3"] = "Kurzy ČNB:"; ws["E3"].font = bold
+ws["F3"] = mmdd_to_ddmm(data["bank_rates"]["effective_date"])
+ws["E4"] = "Měna:"; ws["E4"].font = bold
+ws["F4"] = "CZK"
 
 ws["A4"] = "Pracovník:"
 ws["B4"] = data["employee"]["name"]
@@ -416,54 +445,284 @@ ws["B7"] = data["trip_info"]["target_locations"]
 
 
 # Popis trasy
-ws["B9"] = "Popis trasy"
+# Ohraniceni bunek
+for row in range(11, 29):          # rows 11..28
+    for col in range(1, 7):        # columns A..F
+
+        border = Border(
+            top=thin,
+            bottom=thin,
+            left=thin if col == 1 else None,   # column A
+            right=thin if col == 6 else None,  # column F
+        )
+
+        ws.cell(row=row, column=col).border = border
+
+ws["B9"] = "Popis trasy"; ws["B9"].font = bold
 ws["B9"].alignment = Alignment(horizontal="center", vertical="center")
 
-headers = ["Bod", "Místo", "Datum", "Čas", "Doba", "Jídla"]
+headers = ["Země", "Místo", "Typ", "Datum", "Čas", "Jídla"]
 for col_letter, txt in zip("ABCDEF", headers):
     c = ws[f"{col_letter}10"]
     c.value = txt
+    c.font = bold
+    c.alignment = Alignment(vertical = "center")
 
 
 # Naklady
 ws["B30"] = "Náklady"
 ws["B30"].alignment = Alignment(horizontal="center", vertical="center")
+ws["B30"].font = bold
 
-ws["A31"] = "Stravné"
+# Ohraniceni bunek stravne
+for row in range(33, 43):          # rows 33..42
+    for col in range(1, 7):        # columns A..F
+
+        border = Border(
+            top=thin,
+            bottom=thin,
+            left=thin if col == 1 else None,   # column A
+            right=thin if col == 6 else None,  # column F
+        )
+
+        ws.cell(row=row, column=col).border = border
+
+ws["B31"] = "Stravné"; ws["B31"].font = bold
 headers = ["Den", "Popis", "Plné CZ", "Plné zah.", "Celk. den"]
 for col_letter, txt in zip("ABDEF", headers):
     c = ws[f"{col_letter}32"]
     c.value = txt
+    c.font = bold
+    c.alignment = Alignment(vertical = "center")
+
 ws["C43"] = "Celkem:"
 ws["C44"] = "Kapesné:"
 ws["D44"] = "xxxxxxx"
 ws["F44"] = "xxxxxxx"
 
+# Ohraniceni bunek ubytovani
+for row in range(48, 53):          # rows 48..52
+    for col in range(1, 7):        # columns A..F
 
-ws["A46"] = "Ubytování"
+        border = Border(
+            top=thin,
+            bottom=thin,
+            left=thin if col == 1 else None,   # column A
+            right=thin if col == 6 else None,  # column F
+        )
+
+        ws.cell(row=row, column=col).border = border
+
+ws["B46"] = "Ubytování"; ws["B46"].font = bold
 headers = ["Datum", "Popis", "Doklad č.", "Částka"]
 for col_letter, txt in zip("ABEF", headers):
     c = ws[f"{col_letter}47"]
     c.value = txt
+    c.font = bold
+    c.alignment = Alignment(vertical = "center")
+
 ws["E53"] = "Celkem:"
 
-ws["A54"] = "Ostatní"
+# Ohraniceni bunek ostatni
+for row in range(56, 61):          # rows 56..60
+    for col in range(1, 7):        # columns A..F
+
+        border = Border(
+            top=thin,
+            bottom=thin,
+            left=thin if col == 1 else None,   # column A
+            right=thin if col == 6 else None,  # column F
+        )
+
+        ws.cell(row=row, column=col).border = border
+
+ws["B54"] = "Ostatní"; ws["B54"].font = bold
 headers = ["Datum", "Popis", "Doklad č.", "Částka"]
 for col_letter, txt in zip("ABEF", headers):
     c = ws[f"{col_letter}55"]
     c.value = txt
+    c.font = bold
+    c.alignment = Alignment(vertical = "center")
+
 ws["E61"] = "Celkem:"
 
 # --- Final counts ---
 ws["E63"] = "Záloha:"
-ws["A63"] = "Zúčtováno dne:"
+ws["A63"] = "Zúčt. dne:"
 ws["A64"] = "Podpis:"
 ws["C64"] = "Mezisoučet:"
 ws["E64"] = "Náklady:"
-ws["E65"] = "K vyplacení:"
+ws["E65"] = "K vyplacení:"; ws["E65"].font = bold
+
+
+# --- Filling in waypoints ---
+def fill_waypoints_into_route(ws, waypoints: dict, start_row=11):
+    """
+    Writes waypoints into Excel worksheet row-by-row,
+    starting at A{start_row} with column order:
+    Country | Place | Type | Date | Time | Meals
+    """
+
+    row = start_row  # A11
+
+    for mmdd in sorted(waypoints.keys()):
+        day_points = waypoints[mmdd]
+        date_str = f"{mmdd[2:]}/{mmdd[:2]}"  # DD/MM
+
+        # meals per country (for Arrival row)
+        meals_by_country = {}
+        for wp in day_points:
+            c = wp["country"]
+            meals_by_country[c] = meals_by_country.get(c, 0) + int(wp.get("meals", 0))
+
+        def fmt_time(t):
+            return f"{t[:2]}:{t[2:]}"
+
+        # ---------- Departure ----------
+        first = day_points[0]
+        ws.cell(row=row, column=1, value=first["country"])                     # Country
+        ws.cell(row=row, column=2, value=first["place"])  # Place
+        ws.cell(row=row, column=3, value="Odjezd")                          # Type
+        ws.cell(row=row, column=4, value=date_str)                             # Date
+        ws.cell(row=row, column=5, value=fmt_time(first["time"]))              # Time
+        ws.cell(row=row, column=6, value="")                                   # Meals
+        row += 1
+
+        # ---------- Border crossings ----------
+        prev_country = first["country"]
+
+        for wp in day_points[1:-1]:
+            if wp["country"] != prev_country:
+                ws.cell(row=row, column=1, value=wp["country"])
+                ws.cell(row=row, column=2, value=wp["place"])
+                ws.cell(row=row, column=3, value="Přechod hr.")
+                ws.cell(row=row, column=4, value=date_str)
+                ws.cell(row=row, column=5, value=fmt_time(wp["time"]))
+                ws.cell(row=row, column=6, value="")
+                row += 1
+                prev_country = wp["country"]
+
+        # ---------- Arrival ----------
+        last = day_points[-1]
+        meals_text = ", ".join(
+            f"{c}-{m}" for c, m in meals_by_country.items() if m > 0
+        )
+
+        ws.cell(row=row, column=1, value=last["country"])
+        ws.cell(row=row, column=2, value=last["place"])
+        ws.cell(row=row, column=3, value="Příjezd")
+        ws.cell(row=row, column=4, value=date_str)
+        ws.cell(row=row, column=5, value=fmt_time(last["time"]))
+        ws.cell(row=row, column=6, value=meals_text)
+        row += 1
+
+# --- Fill in perdiems ---
+def fill_days_into_perdiems(ws, days: list[dict], start_row: int = 33, pocket_percent: float = 40.0):
+    """
+    Writes per-diem summary rows starting at A{start_row} (default A33).
+
+    Per row:
+      A = Day (MM/DD)
+      B = Description (day["comment"])
+      D = Full CZ per-diem (base, no meal reduction) [CZK]
+      E = Full FOREIGN per-diem (base_czk, no meal reduction) [CZK]
+      F = Reduced total (CZ reduced + foreign reduced) [CZK]
+
+    Totals:
+      D43 = total full CZ (trip)
+      E43 = total full FOREIGN (trip)
+      F43 = total reduced total (trip)
+      E44 = total pocket money (trip) in CZK = pocket_percent% of FOREIGN full bases (CZK)
+    """
+
+
+
+    def seg_is_foreign(seg: dict) -> bool:
+        c = (seg.get("currency") or "").upper()
+        return c and c != "CZK"
+
+    row = start_row
+
+    total_full_perdiem_cz = 0.0
+    total_full_perdiem_foreign = 0.0
+    total_perdiem_reduced = 0.0
+    total_pocket = 0.0
+
+    for day in days:
+        date_out = to_mmdd(day.get("date", ""))
+        comment = day.get("comment", "")
+
+        # Find CZ segment (if present)
+        cz_seg = next((s for s in day.get("segments", []) if (s.get("currency") or "").upper() == "CZK"), None)
+        cz_full = float(cz_seg.get("base", 0) or 0) if cz_seg else 0.0
+        cz_reduced = float(cz_seg.get("amount", 0) or 0) if cz_seg else 0.0
+
+        # Sum foreign (if multiple foreign segments exist)
+        foreign_segs = [s for s in day.get("segments", []) if seg_is_foreign(s)]
+        foreign_full_czk = sum(float(s.get("base_czk", 0) or 0) for s in foreign_segs)
+        foreign_reduced_czk = sum(float(s.get("amount_czk", 0) or 0) for s in foreign_segs)
+
+        reduced_total_czk = cz_reduced + foreign_reduced_czk
+
+        # Pocket money = % of FOREIGN full base in CZK
+        pocket_czk = round(foreign_full_czk * (float(pocket_percent) / 100.0), 2)
+
+        # Write row
+        ws.cell(row=row, column=1, value=date_out)                      # A
+        ws.cell(row=row, column=2, value=comment)                       # B
+        # column C intentionally blank
+        ws.cell(row=row, column=4, value=round(cz_full, 2))              # D
+        ws.cell(row=row, column=5, value=round(foreign_full_czk, 2))     # E
+        ws.cell(row=row, column=6, value=round(reduced_total_czk, 2))    # F
+
+        # Accumulate totals
+        total_full_perdiem_cz += cz_full
+        total_full_perdiem_foreign += foreign_full_czk
+        total_perdiem_reduced += reduced_total_czk
+        total_pocket += pocket_czk
+
+        row += 1
+
+    # Perdiem totals into fixed cells
+    ws["D43"] = round(total_full_perdiem_cz, 2)
+    ws["E43"] = round(total_full_perdiem_foreign, 2)
+    ws["F43"] = round(total_perdiem_reduced, 2); ws["F43"].font = bold
+    ws["E44"] = round(total_pocket, 2); ws["E44"].font = bold
+
+#TODO --- Fill in Accomodation ---
+
+#TODO --- Fill in Others ----
+
+# --- Fill in trip totals ----
+last_mmdd = sorted(data["waypoints"].keys())[-1]
+last_day_formatted = f"{last_mmdd[:2]}/{last_mmdd[2:]}"
+ws["B63"] = last_day_formatted
+
+subtotal = 0 #TODO add multi-page funcionality for large trips!
+ws["D64"] = subtotal
+
+cash_advance = 0  #TODO Add to data input!
+ws["F63"] = cash_advance
+
+total_trip_costs = subtotal +  totals["total_to_be_paid"]
+ws["F64"] = total_trip_costs
+
+total_to_pay = total_trip_costs - cash_advance 
+ws["F65"] = total_to_pay; ws["F65"].font = bold
 
 # --- Save ---
-os.makedirs("../output", exist_ok=True)
-out_path = "../output/spam.xlsx"
+out_path = os.path.expanduser(
+    f"~/Documents/profi/mzda/travel_reports/{data['report_id']}.xlsx"
+)
+
+fill_waypoints_into_route(ws, data["waypoints"], start_row=11)
+
+fill_days_into_perdiems(
+    ws=ws,
+    days=days,
+    start_row=33,        # A33
+    pocket_percent=40.0  # from settings.json
+)
+
 wb.save(out_path)
 print("Excel saved to:", os.path.abspath(out_path))

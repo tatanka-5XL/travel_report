@@ -40,7 +40,7 @@
           "amount_czk": 889.56
         }
       ],
-      "comment": "CZ 0.83h | Dominant country: IT - total 17.25h",
+      "comment": "CZ 0.83h | Hlav. země: IT - celk. 17.25h",
       "total_perdiem_czk": 889.56
     },
     {
@@ -73,7 +73,7 @@
           "amount_czk": 0
         }
       ],
-      "comment": "Dominant country: IT - total 24.00h (1 meal: -25.0%)",
+      "comment": "Hlav. země: IT - celk. 24.00h (1 jídlo: -25.0%)",
       "total_perdiem_czk": 1001.76
     },
     {
@@ -93,7 +93,7 @@
           "amount_czk": 910.69
         }
       ],
-      "comment": "Dominant country: FR - total 24.00h (1 meal: -25.0%)",
+      "comment": "Hlav. země: FR - celk. 24.00h (1 jídlo: -25.0%)",
       "total_perdiem_czk": 910.69
     },
     {
@@ -113,7 +113,7 @@
           "amount_czk": 910.69
         }
       ],
-      "comment": "Dominant country: FR - total 24.00h (1 meal: -25.0%)",
+      "comment": "Hlav. země: FR - celk. 24.00h (1 jídlo: -25.0%)",
       "total_perdiem_czk": 910.69
     },
     {
@@ -156,7 +156,7 @@
           "amount_czk": 0
         }
       ],
-      "comment": "CZ 3.83h | Dominant country: FR - total 20.17h (1 meal: -25.0%)",
+      "comment": "CZ 3.83h | Hlav. země: FR - celk. 20.17h (1 jídlo: -25.0%)",
       "total_perdiem_czk": 910.69
     },
     {
@@ -173,7 +173,7 @@
           "amount": 184.6
         }
       ],
-      "comment": "CZ 14.83h (1 meal: -35.0%)",
+      "comment": "CZ 14.83h (1 jídlo: -35.0%)",
       "total_perdiem_czk": 184.6
     }
   ],
