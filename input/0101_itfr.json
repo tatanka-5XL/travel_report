@@ -6,7 +6,7 @@
   },
   "trip_info": {
     "trip_number": 126,
-    "trip_description": "Tristone IT + Akwel FR",
+    "trip_description": "Visit of Tristone IT and Akwel FR",
     "target_locations": "Torino IT, Vannes FR",
     "transport": {
       "mode": "Company Car",
@@ -33,6 +33,8 @@
         "place": "Dolni Bojanovice",
         "country": "CZ",
         "meals": 0,
+        "km": 0,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -40,6 +42,8 @@
         "place": "Bernardsthal",
         "country": "AT",
         "meals": 0,
+        "km": 31,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -47,6 +51,8 @@
         "place": "Tarvisio",
         "country": "IT",
         "meals": 0,
+        "km": 463,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -54,6 +60,8 @@
         "place": "Torino",
         "country": "IT",
         "meals": 0,
+        "km": 620,
+        "r_d": 0,
         "next": "end"
       }
     ],
@@ -63,20 +71,26 @@
         "place": "Torino",
         "country": "IT",
         "meals": 1,
+        "km": 0,
+        "r_d": 0,
         "next": "drive"
       },
       {
         "time": "1000",
-        "place": "Tristone",
+        "place": "Tristone Cirie",
         "country": "IT",
         "meals": 0,
+        "km": 6,
+        "r_d": 0,
         "next": "meeting"
       },
       {
         "time": "1030",
-        "place": "Tristone",
+        "place": "Tristone Cirie",
         "country": "IT",
         "meals": 0,
+        "km": 0,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -84,6 +98,8 @@
         "place": "Mont Blanc",
         "country": "FR",
         "meals": 0,
+        "km": 160,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -91,6 +107,8 @@
         "place": "Nantua",
         "country": "FR",
         "meals": 0,
+        "km": 157,
+        "r_d": 0,
         "next": "end"
       }
     ],
@@ -100,6 +118,8 @@
         "place": "Nantua",
         "country": "FR",
         "meals": 1,
+        "km": 0,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -107,6 +127,8 @@
         "place": "Loches",
         "country": "FR",
         "meals": 0,
+        "km": 501,
+        "r_d": 0,
         "next": "end"
       }
     ],
@@ -116,20 +138,26 @@
         "place": "Loches",
         "country": "FR",
         "meals": 1,
+        "km": 0,
+        "r_d": 0,
         "next": "drive"
       },
       {
         "time": "1000",
-        "place": "Akwel",
+        "place": "Akwel Beaulieu-les-Loches",
         "country": "FR",
         "meals": 0,
+        "km": 4,
+        "r_d": 0,
         "next": "meeting"
       },
       {
         "time": "1100",
-        "place": "Akwel",
+        "place": "Akwel Beaulieu-les-Loches",
         "country": "FR",
         "meals": 0,
+        "km": 0,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -137,6 +165,8 @@
         "place": "Akwel Vannes",
         "country": "FR",
         "meals": 0,
+        "km": 345,
+        "r_d": 0,
         "next": "meeting"
       },
       {
@@ -144,6 +174,8 @@
         "place": "Akwel Vannes",
         "country": "FR",
         "meals": 0,
+        "km": 0,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -151,6 +183,8 @@
         "place": "Chartres",
         "country": "FR",
         "meals": 0,
+        "km": 372,
+        "r_d": 0,
         "next": "end"
       }
     ],
@@ -160,6 +194,8 @@
         "place": "Chartres",
         "country": "FR",
         "meals": 1,
+        "km": 0,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -167,6 +203,8 @@
         "place": "Saarbrucken",
         "country": "DE",
         "meals": 0,
+        "km": 477,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -174,6 +212,8 @@
         "place": "Rozvadov",
         "country": "CZ",
         "meals": 0,
+        "km": 472,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -181,6 +221,8 @@
         "place": "Plzen",
         "country": "CZ",
         "meals": 0,
+        "km": 76,
+        "r_d": 0,
         "next": "end"
       }
     ],
@@ -190,6 +232,8 @@
         "place": "Plzen",
         "country": "CZ",
         "meals": 1,
+        "km": 0,
+        "r_d": 0,
         "next": "drive"
       },
       {
@@ -197,7 +241,9 @@
         "place": "Dolni Bojanovice",
         "country": "CZ",
         "meals": 0,
-        "next": "end"
+        "km": 355,
+        "r_d": 0,
+        "next": "endtrip"
       }
     ]
   },

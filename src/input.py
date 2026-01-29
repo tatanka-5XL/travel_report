@@ -7,7 +7,7 @@ Description: Temporary file to input data via exchangeable data format (json)
 Author: Tatanka5XL
 Created: 2025-12-23
 Last Modified: 2026-01-27
-Version: 0.3 (day-based waypoint input)
+Version: 0.4 (day-based waypoint input - including km driven and r&d percent)
 License: Proprietary
 """
 
@@ -63,7 +63,6 @@ def validate_hhmm(val: str) -> str:
         raise ValueError("Invalid HHMM value.")
     return v
 
-
 data = {}
 
 # --- Basic info ---
@@ -108,7 +107,7 @@ while True:
 # --- Day-based waypoints ---
 # Structure:
 # data["waypoints"] = {
-#   "0312": [ {time, place, country, meals, next}, ... ],
+#   "0312": [ {time, place, country, meals, km, r_d, next}, ... ],
 #   "0313": [ ... ]
 # }
 data["waypoints"] = {}
@@ -116,7 +115,7 @@ data["waypoints"] = {}
 print("\nEnter travel days and waypoints.")
 print("Rules:")
 print(" - First enter day (MMDD).")
-print(" - For each day, enter waypoints (time HHMM, place, country, meals, next).")
+print(" - For each day, enter waypoints (time HHMM, place, country, meals, km, r_d, next).")
 print(" - 'next' can be any string, or 'end' to finish the day, or 'endtrip' to finish the trip.\n")
 
 last_country = None
@@ -147,6 +146,8 @@ while not end_trip:
         place = ask("  Place")
         country = ask("  Country", last_country or "")
         meals = ask_int("  Meals", 0)
+        km = ask_int("  Km driven", 0)
+        r_d = ask_int("  Percent R'n'D", None)
 
         nxt = normalize_next(
             ask("  Next (string, or 'end' to finish day, or 'endtrip' to finish trip)", "")
@@ -157,6 +158,8 @@ while not end_trip:
             "place": place,
             "country": country,
             "meals": int(meals),
+            "km": int(km),
+            "r_d": int(r_d),
             "next": nxt
         }
         data["waypoints"][day].append(wp)
