@@ -6,7 +6,7 @@ Description: Parses waypoints in travel report json input and calculates segment
 
 Author: Tatanka5XL
 Created: 2025-12-23
-Last Modified: 2026-01-10
+Last Modified: 2026-01-29
 Version: 0.5
 License: Proprietary
 """
@@ -17,7 +17,6 @@ import json
 import os
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, Border, Side
-from openpyxl.worksheet.pagebreak import Break
 
 
 # =========================
