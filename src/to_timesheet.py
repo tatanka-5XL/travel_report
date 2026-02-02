@@ -6,8 +6,8 @@ Description: Parses waypoints in travel report json input and fills in relevant 
 
 Author: Tatanka5XL
 Created: 2026-01-29
-Last Modified: 2026-01-29
-Version: 0.1
+Last Modified: 2026-02-02
+Version: 0.3 - improved segment grouping (avoiding border crossing points etc.)
 License: Proprietary
 """
 
@@ -24,13 +24,12 @@ from openpyxl import load_workbook
 # ---------------------------
 
 def mmdd_to_date(year: str, mmdd: str) -> datetime:
-    """Input like '0112' meaning Jan 12 -> returns datetime(year-01-12)."""
-    # mmdd is MMDD
     return datetime.strptime(f"{year}{mmdd}", "%Y%m%d")
 
+
 def mmdd_to_ddmm(year: str, mmdd: str) -> str:
-    d = mmdd_to_date(year, mmdd)
-    return d.strftime("%d/%m")
+    return mmdd_to_date(year, mmdd).strftime("%d/%m")
+
 
 def hhmm_to_hh_colon_mm(hhmm: str) -> str:
     hhmm = str(hhmm).zfill(4)
@@ -38,28 +37,31 @@ def hhmm_to_hh_colon_mm(hhmm: str) -> str:
 
 
 # ---------------------------
-# Build timeline segments
+# Build timeline segments (COLLAPSE border-cross drive points)
 # ---------------------------
 
 def build_segments(data: dict) -> list[dict]:
     """
-    Returns list of segments:
+    Returns list of segments, but with DRIVE segments collapsed across border waypoints.
+    MEETING segments are kept as-is.
+
+    Segment format:
       {
         "mmdd": "0113",
         "date_out": "13/01",
         "start_hhmm": "0930",
         "end_hhmm": "1000",
         "type": "drive"|"meeting",
-        "country": "IT",
+        "country": "IT",            # for drive: destination country (place_to country)
         "place_from": "...",
         "place_to": "...",
         "minutes": int,
-        "km": int,
-        "rd": int,  # percent
+        "km": int,                  # sum of km across collapsed drive parts
+        "rd": int,                  # for meeting: cur.r_d ; for drive: 0 (classic)
       }
     """
     year = str(data["year"])
-    segments = []
+    out: list[dict] = []
 
     for mmdd in sorted(data["waypoints"].keys(), key=int):
         wps = data["waypoints"][mmdd]
@@ -69,49 +71,121 @@ def build_segments(data: dict) -> list[dict]:
         day_dt = mmdd_to_date(year, mmdd)
 
         def dt_of(hhmm: str) -> datetime:
-            return datetime.strptime(f"{day_dt.strftime('%Y%m%d')}{str(hhmm).zfill(4)}", "%Y%m%d%H%M")
+            hhmm = str(hhmm).zfill(4)
+            return datetime.strptime(f"{day_dt.strftime('%Y%m%d')}{hhmm}", "%Y%m%d%H%M")
 
-        for i in range(len(wps) - 1):
+        i = 0
+        while i < len(wps) - 1:
             cur = wps[i]
             nxt = wps[i + 1]
 
             seg_kind = (cur.get("next") or "").strip().lower()
             if seg_kind not in ("drive", "meeting"):
-                # "end", "endtrip", etc -> no segment after this waypoint
+                i += 1
                 continue
 
-            a = dt_of(cur["time"])
-            b = dt_of(nxt["time"])
-            if b < a:
-                # midnight rollover safety
-                b = b.replace(day=b.day + 1)
+            # --- MEETING: keep as-is ---
+            if seg_kind == "meeting":
+                a = dt_of(cur["time"])
+                b = dt_of(nxt["time"])
+                if b < a:
+                    b = b.replace(day=b.day + 1)
 
-            minutes = int(round((b - a).total_seconds() / 60.0))
-            if minutes < 0:
-                minutes = 0
+                minutes = int(round((b - a).total_seconds() / 60.0))
+                if minutes < 0:
+                    minutes = 0
 
-            # km is stored on the ARRIVAL waypoint (your JSON)
-            km = int(nxt.get("km", 0) or 0) if seg_kind == "drive" else 0
+                out.append({
+                    "mmdd": mmdd,
+                    "date_out": mmdd_to_ddmm(year, mmdd),
+                    "start_hhmm": str(cur["time"]).zfill(4),
+                    "end_hhmm": str(nxt["time"]).zfill(4),
+                    "type": "meeting",
+                    "country": (cur.get("country") or "").strip().upper(),
+                    "place_from": cur.get("place") or "",
+                    "place_to": nxt.get("place") or "",
+                    "minutes": minutes,
+                    "km": 0,
+                    "rd": int(cur.get("r_d", 0) or 0),
+                })
+                i += 1
+                continue
 
-            segments.append({
+            # --- DRIVE: collapse consecutive drive segments across border waypoints ---
+            drive_start_wp = cur
+            drive_start_idx = i
+            drive_start_time = str(cur["time"]).zfill(4)
+            a = dt_of(drive_start_time)
+
+            total_minutes = 0
+            total_km = 0
+
+            j = i
+            last_arrival_wp = None
+            last_end_time = None
+
+            while j < len(wps) - 1:
+                w0 = wps[j]
+                w1 = wps[j + 1]
+                kind0 = (w0.get("next") or "").strip().lower()
+
+                if kind0 != "drive":
+                    break  # stop collapsing if next is meeting/end/etc
+
+                # segment j: w0 -> w1 is a drive
+                b = dt_of(str(w1["time"]).zfill(4))
+                a0 = dt_of(str(w0["time"]).zfill(4))
+                if b < a0:
+                    b = b.replace(day=b.day + 1)
+
+                minutes = int(round((b - a0).total_seconds() / 60.0))
+                if minutes < 0:
+                    minutes = 0
+
+                total_minutes += minutes
+
+                # km stored on ARRIVAL waypoint
+                total_km += int(w1.get("km", 0) or 0)
+
+                last_arrival_wp = w1
+                last_end_time = str(w1["time"]).zfill(4)
+
+                # Decide if we should continue collapsing:
+                # continue only if next waypoint exists and current arrival waypoint is "just a border crossing"
+                # i.e. next segment is also drive.
+                next_kind = (w1.get("next") or "").strip().lower()
+                if next_kind != "drive":
+                    break
+
+                j += 1
+
+            # Build collapsed drive segment from drive_start_wp -> last_arrival_wp
+            if last_arrival_wp is None or last_end_time is None:
+                i += 1
+                continue
+
+            out.append({
                 "mmdd": mmdd,
                 "date_out": mmdd_to_ddmm(year, mmdd),
-                "start_hhmm": str(cur["time"]).zfill(4),
-                "end_hhmm": str(nxt["time"]).zfill(4),
-                "type": seg_kind,
-                "country": (cur.get("country") or "").strip().upper(),
-                "place_from": cur.get("place") or "",
-                "place_to": nxt.get("place") or "",
-                "minutes": minutes,
-                "km": km,
-                "rd": int(cur.get("r_d", 0) or 0),
+                "start_hhmm": drive_start_time,
+                "end_hhmm": last_end_time,
+                "type": "drive",
+                # destination country
+                "country": (last_arrival_wp.get("country") or "").strip().upper(),
+                "place_from": drive_start_wp.get("place") or "",
+                "place_to": last_arrival_wp.get("place") or "",
+                "minutes": int(total_minutes),
+                "km": int(total_km),
+                "rd": 0,
             })
 
-    return segments
+            # jump i to the end of collapsed block
+            i = j + 1
+
+    return out
 
 
 def find_first_meeting_start(segments: list[dict]) -> tuple[str, str] | None:
-    """Returns (mmdd, start_hhmm) for the first meeting segment."""
     for s in segments:
         if s["type"] == "meeting":
             return s["mmdd"], s["start_hhmm"]
@@ -119,7 +193,6 @@ def find_first_meeting_start(segments: list[dict]) -> tuple[str, str] | None:
 
 
 def find_last_meeting_end(segments: list[dict]) -> tuple[str, str] | None:
-    """Returns (mmdd, end_hhmm) for the last meeting segment."""
     last = None
     for s in segments:
         if s["type"] == "meeting":
@@ -128,9 +201,8 @@ def find_last_meeting_end(segments: list[dict]) -> tuple[str, str] | None:
 
 
 def weighted_avg_meeting_rd(segments: list[dict]) -> float:
-    """Weighted average meeting R&D% by meeting minutes."""
     total_min = 0
-    weighted = 0
+    weighted = 0.0
     for s in segments:
         if s["type"] == "meeting":
             m = int(s["minutes"])
@@ -146,37 +218,32 @@ def weighted_avg_meeting_rd(segments: list[dict]) -> float:
 def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
     year = str(data["year"])
     segs = build_segments(data)
+    if not segs:
+        raise ValueError(
+            "No segments were built. Check your JSON waypoints / 'next' fields.")
 
-    # Trip dates
     day_keys = sorted(data["waypoints"].keys(), key=int)
     trip_from = mmdd_to_ddmm(year, day_keys[0])
     trip_to = mmdd_to_ddmm(year, day_keys[-1])
 
-    # Meeting boundaries
-    first_meet = find_first_meeting_start(segs)   # (mmdd, hhmm)
-    last_meet = find_last_meeting_end(segs)       # (mmdd, hhmm)
-
+    first_meet = find_first_meeting_start(segs)
+    last_meet = find_last_meeting_end(segs)
     avg_meet_rd = weighted_avg_meeting_rd(segs)
 
-    # Load workbook
     wb = load_workbook(template_path)
-    ws = wb.active  # "Monthly Timesheet"
+    ws = wb.active
 
-    # Header fields
     ws["C7"].value = int(data["trip_info"]["trip_number"])
     ws["B5"].value = f"{trip_from} - {trip_to}"
 
-    # Helper to compare (mmdd, hhmm)
     def key(mmdd: str, hhmm: str) -> int:
         return int(mmdd) * 10000 + int(hhmm)
 
     first_meet_key = key(*first_meet) if first_meet else None
     last_meet_key = key(*last_meet) if last_meet else None
 
-    # Split segments
-    travel_there = []
-    travel_home = []
-    detailed = segs[:]  # all segments
+    travel_there: list[dict] = []
+    travel_home: list[dict] = []
 
     for s in segs:
         s_key_start = key(s["mmdd"], s["start_hhmm"])
@@ -184,16 +251,16 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
 
         if s["type"] == "drive" and first_meet_key is not None and s_key_end <= first_meet_key:
             travel_there.append(s)
+
         if s["type"] == "drive" and last_meet_key is not None and s_key_start >= last_meet_key:
             travel_home.append(s)
 
-    # Aggregate “one row per day” driving-only blocks
     def aggregate_daily(driving_segments: list[dict]) -> list[dict]:
-        by_day = {}
+        by_day: dict[str, list[dict]] = {}
         for s in driving_segments:
             by_day.setdefault(s["mmdd"], []).append(s)
 
-        out = []
+        out: list[dict] = []
         for mmdd in sorted(by_day.keys(), key=int):
             items = sorted(by_day[mmdd], key=lambda x: int(x["start_hhmm"]))
             minutes = sum(int(x["minutes"]) for x in items)
@@ -211,32 +278,44 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
     there_days = aggregate_daily(travel_there)
     home_days = aggregate_daily(travel_home)
 
-    # First meeting place for description
+    # first meeting place
     first_meeting_place = None
     for s in segs:
         if s["type"] == "meeting":
             first_meeting_place = s["place_from"]
             break
 
-    # Start writing at row 10
+    # --------- IMPORTANT CHANGE #1: remove travel_there/home segments from detailed ----------
+    used_keys = set()
+    for s in travel_there + travel_home:
+        used_keys.add((s["mmdd"], s["start_hhmm"], s["end_hhmm"], s["type"]))
+
+    detailed = [
+        s for s in segs
+        if (s["mmdd"], s["start_hhmm"], s["end_hhmm"], s["type"]) not in used_keys
+    ]
+    # --------------------------------------------------------------------------------------
+
     row = 10
 
-    # “Travel there …” rows (one per day)
+    # Travel there rows
     for d in there_days:
-        ws.cell(row=row, column=1, value=d["date_out"])  # A Date
-        ws.cell(row=row, column=2, value=f"Travel to {first_meeting_place or 'first meeting'}")  # B Desc
-        ws.cell(row=row, column=3, value=hhmm_to_hh_colon_mm(d["start_hhmm"]))  # C Start
-        ws.cell(row=row, column=4, value=hhmm_to_hh_colon_mm(d["end_hhmm"]))    # D Finish
+        ws.cell(row=row, column=1, value=d["date_out"])
+        ws.cell(row=row, column=2,
+                value=f"Travel to {first_meeting_place or 'first meeting'}")
+        ws.cell(row=row, column=3, value=hhmm_to_hh_colon_mm(d["start_hhmm"]))
+        ws.cell(row=row, column=4, value=hhmm_to_hh_colon_mm(d["end_hhmm"]))
 
         rd_pct = round(avg_meet_rd, 2)
         rd_time = round(d["minutes"] * (rd_pct / 100.0), 2)
-        ws.cell(row=row, column=5, value=rd_pct)         # E R&D %
-        ws.cell(row=row, column=6, value=rd_time)        # F R&D time
-        ws.cell(row=row, column=7, value=int(d["minutes"]))  # G Total mins
-        ws.cell(row=row, column=8, value=int(d["km"]))       # H km
+
+        ws.cell(row=row, column=5, value=rd_pct)
+        ws.cell(row=row, column=6, value=rd_time)
+        ws.cell(row=row, column=7, value=int(d["minutes"]))
+        ws.cell(row=row, column=8, value=int(d["km"]))
         row += 1
 
-    # “Travel home” rows (one per day)
+    # Travel home rows
     for d in home_days:
         ws.cell(row=row, column=1, value=d["date_out"])
         ws.cell(row=row, column=2, value="Travel home")
@@ -245,16 +324,17 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
 
         rd_pct = round(avg_meet_rd, 2)
         rd_time = round(d["minutes"] * (rd_pct / 100.0), 2)
+
         ws.cell(row=row, column=5, value=rd_pct)
         ws.cell(row=row, column=6, value=rd_time)
         ws.cell(row=row, column=7, value=int(d["minutes"]))
         ws.cell(row=row, column=8, value=int(d["km"]))
         row += 1
 
-    # One empty line
+    # Blank line
     row += 1
 
-    # Detailed segments: one row per drive/meeting
+    # Detailed rows (now WITHOUT travel_there/home, and border crossings are already collapsed)
     for s in detailed:
         ws.cell(row=row, column=1, value=s["date_out"])
 
@@ -276,24 +356,33 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
         ws.cell(row=row, column=8, value=int(s["km"]))
         row += 1
 
-    # Save
     out_path = os.path.expanduser(out_path)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     wb.save(out_path)
 
 
 # ---------------------------
-# Example usage
+# CLI / usage
 # ---------------------------
 if __name__ == "__main__":
-    # Load your JSON input
-    json_path = os.path.join("..", "input", "0101_itfr.json")
+    default_json = "0101_itfr.json"
+    json_filename = input(
+        f"Input JSON [{default_json}]: ").strip() or default_json
+    json_path = os.path.join("..", "input", json_filename)
+
+    if not os.path.isfile(json_path):
+        raise FileNotFoundError(f"Input JSON not found: {json_path}")
+
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
 
-    template = "../config/timesheet_template.xlsx"  # adjust for your machine path
-    out = os.path.expanduser(f"~/Documents/profi/expenses/timesheet_{data['report_id']}_{data['trip_info']['trip_number']}.xlsx")
+    template = os.path.join("..", "config", "timesheet_template.xlsx")
+    if not os.path.isfile(template):
+        raise FileNotFoundError(f"Template not found: {template}")
+
+    out = os.path.expanduser(
+        f"~/Documents/profi/expenses/timesheet_{data['report_id']}_{data['trip_info']['trip_number']}.xlsx"
+    )
 
     fill_timesheet(template, data, out)
     print("Saved:", out)
-           
