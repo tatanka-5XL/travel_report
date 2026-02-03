@@ -6,8 +6,8 @@ Description: Parses waypoints in travel report json input and fills in relevant 
 
 Author: Tatanka5XL
 Created: 2026-01-29
-Last Modified: 2026-02-02
-Version: 0.3 - improved segment grouping (avoiding border crossing points etc.)
+Last Modified: 2026-02-03
+Version: 0.4 - added R&D minutes and overall R&D percent calculations
 License: Proprietary
 """
 
@@ -57,7 +57,7 @@ def build_segments(data: dict) -> list[dict]:
         "place_to": "...",
         "minutes": int,
         "km": int,                  # sum of km across collapsed drive parts
-        "rd": int,                  # for meeting: cur.r_d ; for drive: 0 (classic)
+        "rd": int,                  # for meeting: cur.r_d ; for drive: 0 (classic, later overridden for 2nd group)
       }
     """
     year = str(data["year"])
@@ -113,9 +113,7 @@ def build_segments(data: dict) -> list[dict]:
 
             # --- DRIVE: collapse consecutive drive segments across border waypoints ---
             drive_start_wp = cur
-            drive_start_idx = i
             drive_start_time = str(cur["time"]).zfill(4)
-            a = dt_of(drive_start_time)
 
             total_minutes = 0
             total_km = 0
@@ -130,11 +128,10 @@ def build_segments(data: dict) -> list[dict]:
                 kind0 = (w0.get("next") or "").strip().lower()
 
                 if kind0 != "drive":
-                    break  # stop collapsing if next is meeting/end/etc
+                    break
 
-                # segment j: w0 -> w1 is a drive
-                b = dt_of(str(w1["time"]).zfill(4))
                 a0 = dt_of(str(w0["time"]).zfill(4))
+                b = dt_of(str(w1["time"]).zfill(4))
                 if b < a0:
                     b = b.replace(day=b.day + 1)
 
@@ -143,23 +140,17 @@ def build_segments(data: dict) -> list[dict]:
                     minutes = 0
 
                 total_minutes += minutes
-
-                # km stored on ARRIVAL waypoint
                 total_km += int(w1.get("km", 0) or 0)
 
                 last_arrival_wp = w1
                 last_end_time = str(w1["time"]).zfill(4)
 
-                # Decide if we should continue collapsing:
-                # continue only if next waypoint exists and current arrival waypoint is "just a border crossing"
-                # i.e. next segment is also drive.
                 next_kind = (w1.get("next") or "").strip().lower()
                 if next_kind != "drive":
                     break
 
                 j += 1
 
-            # Build collapsed drive segment from drive_start_wp -> last_arrival_wp
             if last_arrival_wp is None or last_end_time is None:
                 i += 1
                 continue
@@ -170,16 +161,14 @@ def build_segments(data: dict) -> list[dict]:
                 "start_hhmm": drive_start_time,
                 "end_hhmm": last_end_time,
                 "type": "drive",
-                # destination country
                 "country": (last_arrival_wp.get("country") or "").strip().upper(),
                 "place_from": drive_start_wp.get("place") or "",
                 "place_to": last_arrival_wp.get("place") or "",
                 "minutes": int(total_minutes),
                 "km": int(total_km),
-                "rd": 0,
+                "rd": 0,  # will be set for "travel between meetings" later
             })
 
-            # jump i to the end of collapsed block
             i = j + 1
 
     return out
@@ -200,17 +189,6 @@ def find_last_meeting_end(segments: list[dict]) -> tuple[str, str] | None:
     return last
 
 
-def weighted_avg_meeting_rd(segments: list[dict]) -> float:
-    total_min = 0
-    weighted = 0.0
-    for s in segments:
-        if s["type"] == "meeting":
-            m = int(s["minutes"])
-            total_min += m
-            weighted += m * float(s["rd"])
-    return (weighted / total_min) if total_min else 0.0
-
-
 # ---------------------------
 # Fill the template
 # ---------------------------
@@ -219,8 +197,7 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
     year = str(data["year"])
     segs = build_segments(data)
     if not segs:
-        raise ValueError(
-            "No segments were built. Check your JSON waypoints / 'next' fields.")
+        raise ValueError("No segments were built. Check your JSON waypoints / 'next' fields.")
 
     day_keys = sorted(data["waypoints"].keys(), key=int)
     trip_from = mmdd_to_ddmm(year, day_keys[0])
@@ -228,11 +205,11 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
 
     first_meet = find_first_meeting_start(segs)
     last_meet = find_last_meeting_end(segs)
-    avg_meet_rd = weighted_avg_meeting_rd(segs)
 
     wb = load_workbook(template_path)
     ws = wb.active
 
+    # Header
     ws["C7"].value = int(data["trip_info"]["trip_number"])
     ws["B5"].value = f"{trip_from} - {trip_to}"
 
@@ -242,6 +219,7 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
     first_meet_key = key(*first_meet) if first_meet else None
     last_meet_key = key(*last_meet) if last_meet else None
 
+    # Split travel there / home
     travel_there: list[dict] = []
     travel_home: list[dict] = []
 
@@ -255,6 +233,7 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
         if s["type"] == "drive" and last_meet_key is not None and s_key_start >= last_meet_key:
             travel_home.append(s)
 
+    # Aggregate driving-only blocks -> one row per day
     def aggregate_daily(driving_segments: list[dict]) -> list[dict]:
         by_day: dict[str, list[dict]] = {}
         for s in driving_segments:
@@ -278,84 +257,154 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
     there_days = aggregate_daily(travel_there)
     home_days = aggregate_daily(travel_home)
 
-    # first meeting place
+    # first meeting place (for description)
     first_meeting_place = None
     for s in segs:
         if s["type"] == "meeting":
             first_meeting_place = s["place_from"]
             break
 
-    # --------- IMPORTANT CHANGE #1: remove travel_there/home segments from detailed ----------
-    used_keys = set()
-    for s in travel_there + travel_home:
-        used_keys.add((s["mmdd"], s["start_hhmm"], s["end_hhmm"], s["type"]))
-
+    # Remove travel_there/home segments from detailed
+    used_keys = set((s["mmdd"], s["start_hhmm"], s["end_hhmm"], s["type"]) for s in (travel_there + travel_home))
     detailed = [
         s for s in segs
         if (s["mmdd"], s["start_hhmm"], s["end_hhmm"], s["type"]) not in used_keys
     ]
-    # --------------------------------------------------------------------------------------
 
+    # Sort detailed chronologically (important for "next meeting RD%" on drives)
+    detailed.sort(key=lambda s: key(s["mmdd"], s["start_hhmm"]))
+
+    # ---------------------------
+    # IMPORTANT CHANGE #2:
+    # For 2nd group DRIVE segments, set rd = NEXT meeting rd%
+    # ---------------------------
+    next_meeting_rd = 0
+    # Walk backwards so we always know "next meeting rd"
+    for s in reversed(detailed):
+        if s["type"] == "meeting":
+            next_meeting_rd = int(s.get("rd", 0) or 0)
+        elif s["type"] == "drive":
+            s["rd"] = int(next_meeting_rd or 0)
+
+    # ---------------------------
+    # Row writer: sets E/F/G exactly as requested
+    # ---------------------------
+    def write_row(r: int, date_out: str, desc: str, start_hhmm: str, end_hhmm: str, rd_pct: float, minutes_total: int, km: int):
+        minutes_total = int(minutes_total or 0)
+        rd_pct = float(rd_pct or 0.0)
+        rd_minutes = round(minutes_total * (rd_pct / 100.0), 2)
+
+        ws.cell(row=r, column=1, value=date_out)                         # A
+        ws.cell(row=r, column=2, value=desc)                             # B
+        ws.cell(row=r, column=3, value=hhmm_to_hh_colon_mm(start_hhmm))   # C
+        ws.cell(row=r, column=4, value=hhmm_to_hh_colon_mm(end_hhmm))     # D
+        ws.cell(row=r, column=5, value=round(rd_pct, 2))                 # E = R&D %
+        ws.cell(row=r, column=6, value=rd_minutes)                       # F = R&D minutes
+        ws.cell(row=r, column=7, value=minutes_total)                    # G = duration minutes
+        ws.cell(row=r, column=8, value=int(km or 0))                     # H = km
+
+        return rd_minutes
+
+    # ==========================================================
+    # 1) SECOND GROUP FIRST: totals into C31, F31, G31
+    # ==========================================================
+    second_total_minutes = sum(int(s.get("minutes", 0) or 0) for s in detailed)
+    second_total_rd_minutes = 0.0
+    for s in detailed:
+        m = int(s.get("minutes", 0) or 0)
+        pct = float(s.get("rd", 0) or 0)
+        second_total_rd_minutes += (m * pct / 100.0)
+
+    second_total_rd_minutes = round(second_total_rd_minutes, 2)
+
+    ws["G31"].value = int(second_total_minutes)
+    ws["F31"].value = float(second_total_rd_minutes)
+
+    if second_total_minutes > 0:
+        avg_rd_pct = round((second_total_rd_minutes / second_total_minutes) * 100.0, 2)
+    else:
+        avg_rd_pct = 0.0
+
+    ws["C31"].value = avg_rd_pct
+
+    # ==========================================================
+    # 2) WRITE FIRST GROUP: travel there + travel home
+    #    Use avg_rd_pct in E, compute F from G
+    # ==========================================================
     row = 10
 
-    # Travel there rows
     for d in there_days:
-        ws.cell(row=row, column=1, value=d["date_out"])
-        ws.cell(row=row, column=2,
-                value=f"Travel to {first_meeting_place or 'first meeting'}")
-        ws.cell(row=row, column=3, value=hhmm_to_hh_colon_mm(d["start_hhmm"]))
-        ws.cell(row=row, column=4, value=hhmm_to_hh_colon_mm(d["end_hhmm"]))
-
-        rd_pct = round(avg_meet_rd, 2)
-        rd_time = round(d["minutes"] * (rd_pct / 100.0), 2)
-
-        ws.cell(row=row, column=5, value=rd_pct)
-        ws.cell(row=row, column=6, value=rd_time)
-        ws.cell(row=row, column=7, value=int(d["minutes"]))
-        ws.cell(row=row, column=8, value=int(d["km"]))
+        write_row(
+            r=row,
+            date_out=d["date_out"],
+            desc=f"Travel to {first_meeting_place or 'first meeting'}",
+            start_hhmm=d["start_hhmm"],
+            end_hhmm=d["end_hhmm"],
+            rd_pct=avg_rd_pct,
+            minutes_total=d["minutes"],
+            km=d["km"],
+        )
         row += 1
 
-    # Travel home rows
     for d in home_days:
-        ws.cell(row=row, column=1, value=d["date_out"])
-        ws.cell(row=row, column=2, value="Travel home")
-        ws.cell(row=row, column=3, value=hhmm_to_hh_colon_mm(d["start_hhmm"]))
-        ws.cell(row=row, column=4, value=hhmm_to_hh_colon_mm(d["end_hhmm"]))
-
-        rd_pct = round(avg_meet_rd, 2)
-        rd_time = round(d["minutes"] * (rd_pct / 100.0), 2)
-
-        ws.cell(row=row, column=5, value=rd_pct)
-        ws.cell(row=row, column=6, value=rd_time)
-        ws.cell(row=row, column=7, value=int(d["minutes"]))
-        ws.cell(row=row, column=8, value=int(d["km"]))
+        write_row(
+            r=row,
+            date_out=d["date_out"],
+            desc="Travel home",
+            start_hhmm=d["start_hhmm"],
+            end_hhmm=d["end_hhmm"],
+            rd_pct=avg_rd_pct,
+            minutes_total=d["minutes"],
+            km=d["km"],
+        )
         row += 1
+
+    # ==========================================================
+    # TOTALS FOR BOTH GROUPS -> F33 (R&D minutes) and G33 (minutes)
+    # Put this AFTER writing travel there/home rows and AFTER avg_rd_pct is known
+    # ==========================================================
+
+    # First group (travel there + travel home) totals
+    first_total_minutes = sum(int(d.get("minutes", 0) or 0) for d in (there_days + home_days))
+    first_total_rd_minutes = round(first_total_minutes * (avg_rd_pct / 100.0), 2)
+
+    # Second group totals already computed above:
+    # second_total_minutes
+    # second_total_rd_minutes
+
+    both_total_minutes = int(first_total_minutes) + int(second_total_minutes)
+    both_total_rd_minutes = round(first_total_rd_minutes + float(second_total_rd_minutes), 2)
+
+    ws["F33"].value = both_total_rd_minutes   # Total R&D minutes (both groups)
+    ws["G33"].value = both_total_minutes      # Total minutes (both groups)    
 
     # Blank line
     row += 1
 
-    # Detailed rows (now WITHOUT travel_there/home, and border crossings are already collapsed)
+    # ==========================================================
+    # 3) WRITE SECOND GROUP: meetings + travel between meetings
+    #    E = s["rd"] (meeting’s own rd, drive uses next meeting rd),
+    #    F computed, G minutes
+    # ==========================================================
     for s in detailed:
-        ws.cell(row=row, column=1, value=s["date_out"])
-
         if s["type"] == "drive":
             desc = f"Travel to {s['place_to']} ({s['country']})"
         else:
             desc = f"Meeting at {s['place_from']} ({s['country']})"
 
-        ws.cell(row=row, column=2, value=desc)
-        ws.cell(row=row, column=3, value=hhmm_to_hh_colon_mm(s["start_hhmm"]))
-        ws.cell(row=row, column=4, value=hhmm_to_hh_colon_mm(s["end_hhmm"]))
-
-        rd_pct = float(s["rd"]) if s["type"] == "meeting" else 0.0
-        rd_time = round(s["minutes"] * (rd_pct / 100.0), 2)
-
-        ws.cell(row=row, column=5, value=rd_pct)
-        ws.cell(row=row, column=6, value=rd_time)
-        ws.cell(row=row, column=7, value=int(s["minutes"]))
-        ws.cell(row=row, column=8, value=int(s["km"]))
+        write_row(
+            r=row,
+            date_out=s["date_out"],
+            desc=desc,
+            start_hhmm=s["start_hhmm"],
+            end_hhmm=s["end_hhmm"],
+            rd_pct=float(s.get("rd", 0) or 0),
+            minutes_total=int(s.get("minutes", 0) or 0),
+            km=int(s.get("km", 0) or 0),
+        )
         row += 1
 
+    # Save
     out_path = os.path.expanduser(out_path)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     wb.save(out_path)
@@ -366,8 +415,7 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
 # ---------------------------
 if __name__ == "__main__":
     default_json = "0101_itfr.json"
-    json_filename = input(
-        f"Input JSON [{default_json}]: ").strip() or default_json
+    json_filename = input(f"Input JSON [{default_json}]: ").strip() or default_json
     json_path = os.path.join("..", "input", json_filename)
 
     if not os.path.isfile(json_path):

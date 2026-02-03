@@ -6,8 +6,8 @@ Description: Parses waypoints in travel report json input and calculates segment
 
 Author: Tatanka5XL
 Created: 2025-12-23
-Last Modified: 2026-01-29
-Version: 0.5
+Last Modified: 2026-02-02
+Version: 0.6 Bug in dominant country currency solved
 License: Proprietary
 """
 
