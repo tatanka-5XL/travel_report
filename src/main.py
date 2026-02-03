@@ -195,8 +195,35 @@ for item in data.get("bank_rates", {}).get("currencies", []):
     if code:
         rates_by_currency[code] = rate
 
-if "CZK" not in rates_by_currency: # Safety check only
-    rates_by_currency["CZK"] = 1.0
+rates_by_currency.setdefault("CZK", 1.0)
+
+# =========================
+# Validate exchange rates (ONLY those used in this trip)
+# =========================
+
+# Countries actually visited in this trip (from waypoints)
+visited_countries = set()
+for mmdd, wps in data.get("waypoints", {}).items():
+    for wp in wps:
+        c = (wp.get("country") or "").strip().upper()
+        if c:
+            visited_countries.add(c)
+
+# Currencies we actually need exchange rates for
+required_currencies = {"CZK"}  # always keep CZK
+for c in visited_countries:
+    if c == "CZ":
+        continue
+    if c in foreign_rates:
+        required_currencies.add(foreign_rates[c]["currency"].upper())
+
+missing_currencies = sorted(cur for cur in required_currencies if cur not in rates_by_currency)
+
+if missing_currencies:
+    raise ValueError(
+        "Missing exchange rates in input JSON for currencies actually used in this trip: "
+        + ", ".join(missing_currencies)
+    )
 
 # =========================
 # Per diem calculation INTO segments
@@ -255,78 +282,76 @@ for day in days:
 
     # ---------- FOREIGN ----------
     foreign_segs = [s for s in day["segments"] if s.get("country") != "CZ"]
-    
+
     if foreign_segs:
         total_h = sum(float(s.get("time_hours", 0) or 0) for s in foreign_segs)
         total_m = sum(int(s.get("meals", 0) or 0) for s in foreign_segs)
 
         dominant = max(foreign_segs, key=lambda s: float(s.get("time_hours", 0) or 0))
-        dominant_country = (dominant.get("country") or "").strip().upper()
+        dominant_country = dominant["country"].upper()
 
         band = foreign_band(total_h)
 
-        # defaults so variables always exist
-        red = None
         base = 0.0
         amt = 0.0
-        dominant_cur = foreign_rates.get(dominant_country, {}).get("currency")
+        red = None
 
-        # block rule: if CZ >=5h and foreign <5h => 0
+        dominant_cur = foreign_rates[dominant_country]["currency"]
+        rate_czk = rates_by_currency[dominant_cur]
+
         blocked = (cz_h >= 5 and total_h < 5)
 
-        if dominant_country not in foreign_rates:
-            raise KeyError(f"No foreign per diem rate in settings.json for country: {dominant_country}")
-
-        if (band is None) or blocked:
-            # keep zeros
-            pass
-        else:
+        if band and not blocked:
             daily_rate = float(foreign_rates[dominant_country]["rate"])
-            dominant_cur = foreign_rates[dominant_country]["currency"]
-            pct = float(foreign_pct[band])            # e.g. 100/66/33
+            pct = float(foreign_pct[band])
             base = round(daily_rate * (pct / 100.0), 2)
-            red = float(foreign_reduce.get(band, 0))  # % per meal (can be 0)
+            red = float(foreign_reduce.get(band, 0))
             amt = reduce_meal(base, red, total_m)
 
-        for seg in foreign_segs:
-            if seg["country"] == dominant_country:
-                new_segments.append({
-                    "country": seg["country"],
-                    "currency": dominant_cur,
-                    "exch_rate": rates_by_currency[dominant_cur],
-                    "time_hours": round(seg["time_hours"], 2),
-                    "band": ("blocked_cz>=5_foreign<5" if blocked else (band or "under_1")),
-                    "meals": total_m,
-                    "base": round(base, 2),
-                    "base_czk": round(base*rates_by_currency[dominant_cur], 2),
-                    "reduction_percent": (red if (red is not None and total_m > 0) else None),
-                    "amount": round(amt, 2),
-                    "amount_czk": round(amt * rates_by_currency[dominant_cur], 2)
-                })
-                total_perdiems_foreign_base += base * rates_by_currency[dominant_cur]
-                total_perdiems_foreign_reduced += amt * rates_by_currency[dominant_cur]
-            else:
-                country = seg["country"]
-                cur = foreign_rates.get(country, {}).get("currency")
-                new_segments.append({
-                    "country": country,
-                    "currency": cur,
-                    "exch_rate": None,
-                    "time_hours": round(seg["time_hours"],2),
-                    "band": None,
-                    "meals": None,
-                    "base": None,
-                    "base_czk": 0,
-                    "reduction_percent": 0,
-                    "amount": 0,
-                    "amount_czk": 0
-                })
+        # dominant country segment
+        new_segments.append({
+            "country": dominant_country,
+            "currency": dominant_cur,
+            "exch_rate": rate_czk,
+            "time_hours": round(total_h, 2),
+            "band": ("blocked_cz>=5_foreign<5" if blocked else band),
+            "meals": total_m,
+            "base": round(base, 2),
+            "base_czk": round(base * rate_czk, 2),
+            "reduction_percent": red,
+            "amount": round(amt, 2),
+            "amount_czk": round(amt * rate_czk, 2),
+        })
 
-        f_comment = f"Hlav. země: {dominant_country} - celk. {total_h:.2f}h"
-        if (red is not None) and total_m > 0 and red != 0:
-            f_comment += f" ({total_m} jídl{'a' if total_m > 1 else 'o'}: -{red}%)"
-        comment_parts.append(f_comment)
-        total_perdiem_czk += (amt * rates_by_currency[cur])
+        total_perdiems_foreign_base += base * rate_czk
+        total_perdiems_foreign_reduced += amt * rate_czk
+        total_perdiem_czk += amt * rate_czk
+
+        # non-dominant visited countries (informational only)
+        for seg in foreign_segs:
+            if seg["country"].upper() == dominant_country:
+                continue
+
+            cur = foreign_rates.get(seg["country"], {}).get("currency")
+
+            new_segments.append({
+                "country": seg["country"],
+                "currency": cur,
+                "exch_rate": rates_by_currency.get(cur),
+                "time_hours": round(seg["time_hours"], 2),
+                "band": None,
+                "meals": None,
+                "base": None,
+                "base_czk": 0,
+                "reduction_percent": None,
+                "amount": 0,
+                "amount_czk": 0,
+            })
+
+        comment = f"{dominant_country} {total_h:.2f}h"
+        if red and total_m:
+            comment += f" ({total_m} jídl{'a' if total_m > 1 else 'o'}: -{red}%)"
+        comment_parts.append(comment)
 
     # ---------- FINAL DAY ----------
     day["segments"] = new_segments

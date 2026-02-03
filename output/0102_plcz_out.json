@@ -1,0 +1,70 @@
+{
+  "days": [
+    {
+      "date": "21/01",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 2.5,
+          "band": "under_5",
+          "meals": 0,
+          "base": 0.0,
+          "reduction_percent": null,
+          "amount": 0.0
+        },
+        {
+          "country": "PL",
+          "currency": "EUR",
+          "exch_rate": 24.36,
+          "time_hours": 6.17,
+          "band": "1_to_12",
+          "meals": 0,
+          "base": 16.65,
+          "base_czk": 405.59,
+          "reduction_percent": 70.0,
+          "amount": 16.65,
+          "amount_czk": 405.59
+        }
+      ],
+      "comment": "CZ 2.50h | PL 6.17h",
+      "total_perdiem_czk": 405.59
+    },
+    {
+      "date": "22/01",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 8.33,
+          "band": "5_to_12",
+          "meals": 0,
+          "base": 185.0,
+          "reduction_percent": 70.0,
+          "amount": 185.0
+        },
+        {
+          "country": "PL",
+          "currency": "EUR",
+          "exch_rate": 24.36,
+          "time_hours": 12.17,
+          "band": "12_to_18",
+          "meals": 1,
+          "base": 33.3,
+          "base_czk": 811.19,
+          "reduction_percent": 35.0,
+          "amount": 21.64,
+          "amount_czk": 527.15
+        }
+      ],
+      "comment": "CZ 8.33h | PL 12.17h (1 jídlo: -35.0%)",
+      "total_perdiem_czk": 712.15
+    }
+  ],
+  "totals": {
+    "total_perdiems_cz": 185.0,
+    "total_perdiems_foreign": 932.74,
+    "total_pocket_money": 486.71,
+    "total_to_be_paid": 1604.46
+  }
+}

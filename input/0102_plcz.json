@@ -1,0 +1,148 @@
+{
+  "report_id": "0102_plcz",
+  "year": "2026",
+  "employee": {
+    "name": "Petr Pribil"
+  },
+  "trip_info": {
+    "trip_number": 127,
+    "trip_description": "Visit of Tristone PL and Tristone CZ",
+    "target_locations": "Walbrzych PL, Hradek n/Nisou CZ",
+    "transport": {
+      "mode": "Company Car",
+      "vehicle_registration": "3BF 3073"
+    }
+  },
+  "bank_rates": {
+    "effective_date": "0121",
+    "currencies": [
+      {
+        "code": "CZK",
+        "exchange_rate": 1
+      },
+      {
+        "code": "EUR",
+        "exchange_rate": 24.36
+      },
+      {
+        "code": "PLN",
+        "exchange_rate": 5.761
+      }
+    ]
+  },
+  "waypoints": {
+    "0121": [
+      {
+        "time": "1520",
+        "place": "Dolni Bojanovice",
+        "country": "CZ",
+        "meals": 0,
+        "km": 0,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1750",
+        "place": "Boboszow",
+        "country": "PL",
+        "meals": 0,
+        "km": 180,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1930",
+        "place": "Diecmarowice",
+        "country": "PL",
+        "meals": 0,
+        "km": 92,
+        "r_d": 0,
+        "next": "end"
+      }
+    ],
+    "0122": [
+      {
+        "time": "0745",
+        "place": "Diecmarowice",
+        "country": "PL",
+        "meals": 1,
+        "km": 0,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "0800",
+        "place": "Tristone PL",
+        "country": "PL",
+        "meals": 0,
+        "km": 7,
+        "r_d": 0,
+        "next": "meeting"
+      },
+      {
+        "time": "0845",
+        "place": "Tristone PL",
+        "country": "PL",
+        "meals": 0,
+        "km": 0,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1210",
+        "place": "Hradek n/Nisou",
+        "country": "CZ",
+        "meals": 0,
+        "km": 142,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1300",
+        "place": "Tristone CZ",
+        "country": "CZ",
+        "meals": 0,
+        "km": 1,
+        "r_d": 0,
+        "next": "meeting"
+      },
+      {
+        "time": "1400",
+        "place": "Tristone CZ",
+        "country": "CZ",
+        "meals": 0,
+        "km": 0,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1430",
+        "place": "CS Cargo Liberec",
+        "country": "CZ",
+        "meals": 0,
+        "km": 25,
+        "r_d": 0,
+        "next": "meeting"
+      },
+      {
+        "time": "1500",
+        "place": "CS Cargo Liberec",
+        "country": "CZ",
+        "meals": 0,
+        "km": 0,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "2030",
+        "place": "Dolni Bojanovice",
+        "country": "CZ",
+        "meals": 0,
+        "km": 370,
+        "r_d": 0,
+        "next": "endtrip"
+      }
+    ]
+  },
+  "bills": []
+}
