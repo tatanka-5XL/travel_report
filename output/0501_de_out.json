@@ -1,0 +1,116 @@
+{
+  "days": [
+    {
+      "date": "05/05",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 0.75,
+          "band": "under_5",
+          "meals": 0,
+          "base": 0.0,
+          "reduction_percent": null,
+          "amount": 0.0
+        },
+        {
+          "country": "DE",
+          "currency": "EUR",
+          "exch_rate": 24.38,
+          "time_hours": 19.58,
+          "band": "over_18",
+          "meals": 0,
+          "base": 50.0,
+          "base_czk": 1219.0,
+          "reduction_percent": 25.0,
+          "amount": 50.0,
+          "amount_czk": 1219.0
+        },
+        {
+          "country": "AT",
+          "currency": "EUR",
+          "exch_rate": 24.38,
+          "time_hours": 4.25,
+          "band": null,
+          "meals": null,
+          "base": null,
+          "base_czk": 0,
+          "reduction_percent": null,
+          "amount": 0,
+          "amount_czk": 0
+        }
+      ],
+      "comment": "CZ 0.75h | DE 19.58h",
+      "total_perdiem_czk": 1219.0
+    },
+    {
+      "date": "06/05",
+      "segments": [
+        {
+          "country": "DE",
+          "currency": "EUR",
+          "exch_rate": 24.38,
+          "time_hours": 24.0,
+          "band": "over_18",
+          "meals": 1,
+          "base": 50.0,
+          "base_czk": 1219.0,
+          "reduction_percent": 25.0,
+          "amount": 37.5,
+          "amount_czk": 914.25
+        }
+      ],
+      "comment": "DE 24.00h (1 jídlo: -25.0%)",
+      "total_perdiem_czk": 914.25
+    },
+    {
+      "date": "07/05",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 1.08,
+          "band": "under_5",
+          "meals": 0,
+          "base": 0.0,
+          "reduction_percent": null,
+          "amount": 0.0
+        },
+        {
+          "country": "DE",
+          "currency": "EUR",
+          "exch_rate": 24.38,
+          "time_hours": 15.0,
+          "band": "12_to_18",
+          "meals": 0,
+          "base": 33.3,
+          "base_czk": 811.85,
+          "reduction_percent": 35.0,
+          "amount": 33.3,
+          "amount_czk": 811.85
+        },
+        {
+          "country": "AT",
+          "currency": "EUR",
+          "exch_rate": 24.38,
+          "time_hours": 6.0,
+          "band": null,
+          "meals": null,
+          "base": null,
+          "base_czk": 0,
+          "reduction_percent": null,
+          "amount": 0,
+          "amount_czk": 0
+        }
+      ],
+      "comment": "CZ 1.08h | DE 15.00h",
+      "total_perdiem_czk": 811.85
+    }
+  ],
+  "totals": {
+    "total_perdiems_cz": 0.0,
+    "total_perdiems_foreign": 2945.1,
+    "total_pocket_money": 1299.94,
+    "total_to_be_paid": 4245.05
+  }
+}

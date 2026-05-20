@@ -37,12 +37,12 @@ def hhmm_to_hh_colon_mm(hhmm: str) -> str:
 
 
 # ---------------------------
-# Build timeline segments (COLLAPSE border-cross drive points)
+# Build timeline segments (COLLAPSE border-cross travel points)
 # ---------------------------
 
 def build_segments(data: dict) -> list[dict]:
     """
-    Returns list of segments, but with DRIVE segments collapsed across border waypoints.
+    Returns list of segments, but with TRAVEL segments collapsed across border waypoints.
     MEETING segments are kept as-is.
 
     Segment format:
@@ -51,13 +51,13 @@ def build_segments(data: dict) -> list[dict]:
         "date_out": "13/01",
         "start_hhmm": "0930",
         "end_hhmm": "1000",
-        "type": "drive"|"meeting",
-        "country": "IT",            # for drive: destination country (place_to country)
+        "type": "travel"|"meeting",
+        "country": "IT",            # for travel: destination country (place_to country)
         "place_from": "...",
         "place_to": "...",
         "minutes": int,
         "km": int,                  # sum of km across collapsed drive parts
-        "rd": int,                  # for meeting: cur.r_d ; for drive: 0 (classic, later overridden for 2nd group)
+        "rd": int,                  # for meeting: cur.r_d ; for travel: 0 (classic, later overridden for 2nd group)
       }
     """
     year = str(data["year"])
@@ -80,7 +80,7 @@ def build_segments(data: dict) -> list[dict]:
             nxt = wps[i + 1]
 
             seg_kind = (cur.get("next") or "").strip().lower()
-            if seg_kind not in ("drive", "meeting"):
+            if seg_kind not in ("travel", "meeting"):
                 i += 1
                 continue
 
@@ -111,9 +111,9 @@ def build_segments(data: dict) -> list[dict]:
                 i += 1
                 continue
 
-            # --- DRIVE: collapse consecutive drive segments across border waypoints ---
-            drive_start_wp = cur
-            drive_start_time = str(cur["time"]).zfill(4)
+            # --- TRAVEL: collapse consecutive travel segments across border waypoints ---
+            travel_start_wp = cur
+            travel_start_time = str(cur["time"]).zfill(4)
 
             total_minutes = 0
             total_km = 0
@@ -127,7 +127,7 @@ def build_segments(data: dict) -> list[dict]:
                 w1 = wps[j + 1]
                 kind0 = (w0.get("next") or "").strip().lower()
 
-                if kind0 != "drive":
+                if kind0 != "travel":
                     break
 
                 a0 = dt_of(str(w0["time"]).zfill(4))
@@ -146,7 +146,7 @@ def build_segments(data: dict) -> list[dict]:
                 last_end_time = str(w1["time"]).zfill(4)
 
                 next_kind = (w1.get("next") or "").strip().lower()
-                if next_kind != "drive":
+                if next_kind != "travel":
                     break
 
                 j += 1
@@ -158,11 +158,11 @@ def build_segments(data: dict) -> list[dict]:
             out.append({
                 "mmdd": mmdd,
                 "date_out": mmdd_to_ddmm(year, mmdd),
-                "start_hhmm": drive_start_time,
+                "start_hhmm": travel_start_time,
                 "end_hhmm": last_end_time,
-                "type": "drive",
+                "type": "travel",
                 "country": (last_arrival_wp.get("country") or "").strip().upper(),
-                "place_from": drive_start_wp.get("place") or "",
+                "place_from": travel_start_wp.get("place") or "",
                 "place_to": last_arrival_wp.get("place") or "",
                 "minutes": int(total_minutes),
                 "km": int(total_km),
@@ -227,10 +227,10 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
         s_key_start = key(s["mmdd"], s["start_hhmm"])
         s_key_end = key(s["mmdd"], s["end_hhmm"])
 
-        if s["type"] == "drive" and first_meet_key is not None and s_key_end <= first_meet_key:
+        if s["type"] == "travel" and first_meet_key is not None and s_key_end <= first_meet_key:
             travel_there.append(s)
 
-        if s["type"] == "drive" and last_meet_key is not None and s_key_start >= last_meet_key:
+        if s["type"] == "travel" and last_meet_key is not None and s_key_start >= last_meet_key:
             travel_home.append(s)
 
     # Aggregate driving-only blocks -> one row per day
@@ -276,14 +276,14 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
 
     # ---------------------------
     # IMPORTANT CHANGE #2:
-    # For 2nd group DRIVE segments, set rd = NEXT meeting rd%
+    # For 2nd group TRAVEL segments, set rd = NEXT meeting rd%
     # ---------------------------
     next_meeting_rd = 0
     # Walk backwards so we always know "next meeting rd"
     for s in reversed(detailed):
         if s["type"] == "meeting":
             next_meeting_rd = int(s.get("rd", 0) or 0)
-        elif s["type"] == "drive":
+        elif s["type"] == "travel":
             s["rd"] = int(next_meeting_rd or 0)
 
     # ---------------------------
@@ -383,11 +383,11 @@ def fill_timesheet(template_path: str, data: dict, out_path: str) -> None:
 
     # ==========================================================
     # 3) WRITE SECOND GROUP: meetings + travel between meetings
-    #    E = s["rd"] (meeting’s own rd, drive uses next meeting rd),
+    #    E = s["rd"] (meeting’s own rd, travel uses next meeting rd),
     #    F computed, G minutes
     # ==========================================================
     for s in detailed:
-        if s["type"] == "drive":
+        if s["type"] == "travel":
             desc = f"Travel to {s['place_to']} ({s['country']})"
         else:
             desc = f"Meeting at {s['place_from']} ({s['country']})"

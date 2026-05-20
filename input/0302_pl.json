@@ -1,0 +1,126 @@
+{
+  "report_id": "0302_pl",
+  "year": "2026",
+  "employee": {
+    "name": "Petr Pribil"
+  },
+  "trip_info": {
+    "trip_number": 134,
+    "trip_description": "Visit of PASS PL",
+    "target_locations": "Sanok PL",
+    "transport": {
+      "mode": "Company Car",
+      "vehicle_registration": "3BF 3073"
+    }
+  },
+  "bank_rates": {
+    "effective_date": "0324",
+    "currencies": [
+      {
+        "code": "CZK",
+        "exchange_rate": 1
+      },
+      {
+        "code": "EUR",
+        "exchange_rate": 24.475
+      }
+    ]
+  },
+  "waypoints": {
+    "0324": [
+      {
+        "time": "1110",
+        "place": "Dolni Bojanovice",
+        "country": "CZ",
+        "meals": 0,
+        "km": 0,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1135",
+        "place": "Holic",
+        "country": "SK",
+        "meals": 0,
+        "km": 9,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1915",
+        "place": "Barwinek",
+        "country": "PL",
+        "meals": 0,
+        "km": 436,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "2045",
+        "place": "Sanok",
+        "country": "PL",
+        "meals": 0,
+        "km": 59,
+        "r_d": 0,
+        "next": "end"
+      }
+    ],
+    "0325": [
+      {
+        "time": "0940",
+        "place": "Sanok",
+        "country": "PL",
+        "meals": 1,
+        "km": 0,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1000",
+        "place": "PASS PL",
+        "country": "PL",
+        "meals": 0,
+        "km": 3,
+        "r_d": 0,
+        "next": "meeting"
+      },
+      {
+        "time": "1215",
+        "place": "PASS PL",
+        "country": "PL",
+        "meals": 0,
+        "km": 0,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "1530",
+        "place": "Barwinek",
+        "country": "SK",
+        "meals": 0,
+        "km": 64,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "2225",
+        "place": "Holic",
+        "country": "CZ",
+        "meals": 0,
+        "km": 431,
+        "r_d": 0,
+        "next": "drive"
+      },
+      {
+        "time": "2245",
+        "place": "Dolni Bojanovice",
+        "country": "CZ",
+        "meals": 0,
+        "km": 9,
+        "r_d": 0,
+        "next": "endtrip"
+      }
+    ]
+  },
+  "bills": []
+}

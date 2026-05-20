@@ -1,0 +1,44 @@
+{
+  "days": [
+    {
+      "date": "14/04",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 11.58,
+          "band": "5_to_12",
+          "meals": 0,
+          "base": 185.0,
+          "reduction_percent": 70.0,
+          "amount": 185.0
+        }
+      ],
+      "comment": "CZ 11.58h",
+      "total_perdiem_czk": 185.0
+    },
+    {
+      "date": "15/04",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 20.0,
+          "band": "over_18",
+          "meals": 1,
+          "base": 442.0,
+          "reduction_percent": 25.0,
+          "amount": 331.5
+        }
+      ],
+      "comment": "CZ 20.00h (1 jídlo: -25.0%)",
+      "total_perdiem_czk": 331.5
+    }
+  ],
+  "totals": {
+    "total_perdiems_cz": 516.5,
+    "total_perdiems_foreign": 0,
+    "total_pocket_money": 0.0,
+    "total_to_be_paid": 516.5
+  }
+}
