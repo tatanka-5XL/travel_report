@@ -156,8 +156,9 @@ def build_days(json_data: dict) -> list[dict]:
 # Main: load input + settings
 # =========================
 
-default_file = "0101_itfr.json"
-filename = input(f"Input JSON [{default_file}]: ").strip() or default_file
+filename = input(f"Input JSON: ").strip()
+if not filename.startswith(".json"):
+    filename = filename + ".json"
 input_path = os.path.join("..", "input", filename)
 
 if not os.path.isfile(input_path):
@@ -588,6 +589,7 @@ def fill_waypoints_into_route(ws, waypoints: dict, start_row=11):
     """
 
     row = start_row  # A11
+    overnight_travel = False
 
     for mmdd in sorted(waypoints.keys()):
         day_points = waypoints[mmdd]
@@ -602,11 +604,19 @@ def fill_waypoints_into_route(ws, waypoints: dict, start_row=11):
         def fmt_time(t):
             return f"{t[:2]}:{t[2:]}"
 
-        # ---------- Departure ----------
+     
+
+        # ---------- First point of the day ----------
         first = day_points[0]
         ws.cell(row=row, column=1, value=first["country"])                     # Country
-        ws.cell(row=row, column=2, value=first["place"])  # Place
-        ws.cell(row=row, column=3, value="Odjezd")                          # Type
+        ws.cell(row=row, column=2, value=first["place"])                     # Place
+        if overnight_travel:
+            if first["next"] == "hotel":
+                ws.cell(row=row, column=3, value="Příjezd")
+            elif first["next"] == "travel":
+                ws.cell(row=row, column=3, value="Přechod hr.")
+        else:
+            ws.cell(row=row, column=3, value="Odjezd")                         # Type
         ws.cell(row=row, column=4, value=date_str)                             # Date
         ws.cell(row=row, column=5, value=fmt_time(first["time"]))              # Time
         ws.cell(row=row, column=6, value="")                                   # Meals
@@ -626,19 +636,30 @@ def fill_waypoints_into_route(ws, waypoints: dict, start_row=11):
                 row += 1
                 prev_country = wp["country"]
 
-        # ---------- Arrival ----------
+        # ---------- Last point of the day ----------
         last = day_points[-1]
         meals_text = ", ".join(
             f"{c}-{m}" for c, m in meals_by_country.items() if m > 0
         )
+        
 
-        ws.cell(row=row, column=1, value=last["country"])
-        ws.cell(row=row, column=2, value=last["place"])
-        ws.cell(row=row, column=3, value="Příjezd")
-        ws.cell(row=row, column=4, value=date_str)
-        ws.cell(row=row, column=5, value=fmt_time(last["time"]))
-        ws.cell(row=row, column=6, value=meals_text)
-        row += 1
+        if last["next"] == "hotel":
+            ws.cell(row=row, column=1, value=last["country"])
+            ws.cell(row=row, column=2, value=last["place"])
+            ws.cell(row=row, column=3, value="Příjezd")
+            ws.cell(row=row, column=4, value=date_str)
+            ws.cell(row=row, column=5, value=fmt_time(last["time"]))
+            ws.cell(row=row, column=6, value=meals_text)
+            row += 1
+        elif last["next"] == "travel":
+            ws.cell(row=row, column=1, value=last["country"])
+            ws.cell(row=row, column=2, value=last["place"])
+            ws.cell(row=row, column=3, value="Odjezd")
+            ws.cell(row=row, column=4, value=date_str)
+            ws.cell(row=row, column=5, value=fmt_time(last["time"]))
+            ws.cell(row=row, column=6, value=meals_text)
+            row += 1
+            overnight_travel = True
 
 # --- Fill in perdiems ---
 def fill_days_into_perdiems(ws, days: list[dict], start_row: int = 33, pocket_percent: float = 40.0):
@@ -731,7 +752,7 @@ ws["F63"] = cash_advance
 total_trip_costs = subtotal +  totals["total_to_be_paid"]
 ws["F64"] = total_trip_costs
 
-total_to_pay = total_trip_costs - cash_advance 
+total_to_pay = round(total_trip_costs - cash_advance)
 ws["F65"] = total_to_pay; ws["F65"].font = bold
 
 # --- Save ---

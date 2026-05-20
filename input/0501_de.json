@@ -62,7 +62,7 @@
         "meals": 0,
         "km": 0,
         "r_d": 100,
-        "next": "end"
+        "next": "hotel"
       }
     ],
     "0506": [
@@ -92,27 +92,9 @@
         "km": 0,
         "r_d": 100,
         "next": "travel"
-      },
-      {
-        "time": "2359",
-        "place": "Dusseldorf",
-        "country": "DE",
-        "meals": 0,
-        "km": 0,
-        "r_d": 100,
-        "next": "end"
       }
     ],
     "0507": [
-      {
-        "time": "0000",
-        "place": "Dusseldorf",
-        "country": "DE",
-        "meals": 0,
-        "km": 0,
-        "r_d": 100,
-        "next": "travel"
-      },
       {
         "time": "0900",
         "place": "Freilassing",
