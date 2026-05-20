@@ -13,7 +13,7 @@ License: Proprietary
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import json
 from openpyxl import load_workbook
@@ -41,135 +41,77 @@ def hhmm_to_hh_colon_mm(hhmm: str) -> str:
 # ---------------------------
 
 def build_segments(data: dict) -> list[dict]:
-    """
-    Returns list of segments, but with TRAVEL segments collapsed across border waypoints.
-    MEETING segments are kept as-is.
-
-    Segment format:
-      {
-        "mmdd": "0113",
-        "date_out": "13/01",
-        "start_hhmm": "0930",
-        "end_hhmm": "1000",
-        "type": "travel"|"meeting",
-        "country": "IT",            # for travel: destination country (place_to country)
-        "place_from": "...",
-        "place_to": "...",
-        "minutes": int,
-        "km": int,                  # sum of km across collapsed drive parts
-        "rd": int,                  # for meeting: cur.r_d ; for travel: 0 (classic, later overridden for 2nd group)
-      }
-    """
     year = str(data["year"])
     out: list[dict] = []
 
+    # Flatten all waypoints into a single chronological list to handle midnight/multi-day logic
+    all_wps = []
     for mmdd in sorted(data["waypoints"].keys(), key=int):
-        wps = data["waypoints"][mmdd]
-        if not wps or len(wps) < 2:
+        for wp in data["waypoints"][mmdd]:
+            # Attach date info to the waypoint object for easier math
+            wp_copy = wp.copy()
+            wp_copy["_dt"] = datetime.strptime(f"{year}{mmdd}{str(wp['time']).zfill(4)}", "%Y%m%d%H%M")
+            wp_copy["_mmdd"] = mmdd
+            all_wps.append(wp_copy)
+
+    i = 0
+    while i < len(all_wps) - 1:
+        cur = all_wps[i]
+        nxt = all_wps[i + 1]
+        kind = (cur.get("next") or "").strip().lower()
+
+        # 1. Handle HOTEL (New type)
+        if kind == "hotel":
+            # Just skip to next; doesn't add minutes/km to timesheet
+            i += 1
             continue
 
-        day_dt = mmdd_to_date(year, mmdd)
+        # 2. Only process TRAVEL or MEETING
+        if kind not in ("travel", "meeting"):
+            i += 1
+            continue
 
-        def dt_of(hhmm: str) -> datetime:
-            hhmm = str(hhmm).zfill(4)
-            return datetime.strptime(f"{day_dt.strftime('%Y%m%d')}{hhmm}", "%Y%m%d%H%M")
+        start_dt = cur["_dt"]
+        end_dt = nxt["_dt"]
 
-        i = 0
-        while i < len(wps) - 1:
-            cur = wps[i]
-            nxt = wps[i + 1]
+        # Ensure end is after start (handles basic cross-midnight logic)
+        if end_dt < start_dt:
+            end_dt = end_dt.replace(day=end_dt.day + 1)
 
-            seg_kind = (cur.get("next") or "").strip().lower()
-            if seg_kind not in ("travel", "meeting"):
-                i += 1
-                continue
+        # Logic to split segments if they cross midnight
+        temp_start = start_dt
+        while temp_start < end_dt:
+            # Determine the end of the current day
+            day_end = temp_start.replace(hour=23, minute=59, second=59)
+            # Use the actual arrival time or midnight, whichever comes first
+            current_seg_end = min(end_dt, day_end)
+            
+            duration_mins = int(round((current_seg_end - temp_start).total_seconds() / 60.0))
+            if duration_mins < 0: duration_mins = 0
 
-            # --- MEETING: keep as-is ---
-            if seg_kind == "meeting":
-                a = dt_of(cur["time"])
-                b = dt_of(nxt["time"])
-                if b < a:
-                    b = b.replace(day=b.day + 1)
-
-                minutes = int(round((b - a).total_seconds() / 60.0))
-                if minutes < 0:
-                    minutes = 0
-
-                out.append({
-                    "mmdd": mmdd,
-                    "date_out": mmdd_to_ddmm(year, mmdd),
-                    "start_hhmm": str(cur["time"]).zfill(4),
-                    "end_hhmm": str(nxt["time"]).zfill(4),
-                    "type": "meeting",
-                    "country": (cur.get("country") or "").strip().upper(),
-                    "place_from": cur.get("place") or "",
-                    "place_to": nxt.get("place") or "",
-                    "minutes": minutes,
-                    "km": 0,
-                    "rd": int(cur.get("r_d", 0) or 0),
-                })
-                i += 1
-                continue
-
-            # --- TRAVEL: collapse consecutive travel segments across border waypoints ---
-            travel_start_wp = cur
-            travel_start_time = str(cur["time"]).zfill(4)
-
-            total_minutes = 0
-            total_km = 0
-
-            j = i
-            last_arrival_wp = None
-            last_end_time = None
-
-            while j < len(wps) - 1:
-                w0 = wps[j]
-                w1 = wps[j + 1]
-                kind0 = (w0.get("next") or "").strip().lower()
-
-                if kind0 != "travel":
-                    break
-
-                a0 = dt_of(str(w0["time"]).zfill(4))
-                b = dt_of(str(w1["time"]).zfill(4))
-                if b < a0:
-                    b = b.replace(day=b.day + 1)
-
-                minutes = int(round((b - a0).total_seconds() / 60.0))
-                if minutes < 0:
-                    minutes = 0
-
-                total_minutes += minutes
-                total_km += int(w1.get("km", 0) or 0)
-
-                last_arrival_wp = w1
-                last_end_time = str(w1["time"]).zfill(4)
-
-                next_kind = (w1.get("next") or "").strip().lower()
-                if next_kind != "travel":
-                    break
-
-                j += 1
-
-            if last_arrival_wp is None or last_end_time is None:
-                i += 1
-                continue
-
+            seg_mmdd = temp_start.strftime("%m%d")
+            
             out.append({
-                "mmdd": mmdd,
-                "date_out": mmdd_to_ddmm(year, mmdd),
-                "start_hhmm": travel_start_time,
-                "end_hhmm": last_end_time,
-                "type": "travel",
-                "country": (last_arrival_wp.get("country") or "").strip().upper(),
-                "place_from": travel_start_wp.get("place") or "",
-                "place_to": last_arrival_wp.get("place") or "",
-                "minutes": int(total_minutes),
-                "km": int(total_km),
-                "rd": 0,  # will be set for "travel between meetings" later
+                "mmdd": seg_mmdd,
+                "date_out": temp_start.strftime("%d/%m"),
+                "start_hhmm": temp_start.strftime("%H%M"),
+                "end_hhmm": current_seg_end.strftime("%H%M"),
+                "type": kind,
+                "country": (cur.get("country") or "").strip().upper() if kind == "travel" else (cur.get("country") or "").strip().upper(),
+                "place_from": cur.get("place") or "",
+                "place_to": nxt.get("place") or "",
+                "minutes": duration_mins,
+                "km": int(nxt.get("km", 0) or 0) if temp_start == start_dt else 0, # Add KM only to the first part of split
+                "rd": int(cur.get("r_d", 0) or 0) if kind == "meeting" else 0,
             })
 
-            i = j + 1
+            # Move start to the beginning of the next day
+            if current_seg_end == day_end:
+                temp_start = (day_end + timedelta(seconds=1)).replace(second=0)
+            else:
+                temp_start = end_dt
+
+        i += 1
 
     return out
 
