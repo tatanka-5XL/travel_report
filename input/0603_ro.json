@@ -1,0 +1,152 @@
+{
+  "report_id": "0603_ro",
+  "year": "2026",
+  "employee": {
+    "name": "Petr Pribil"
+  },
+  "trip_info": {
+    "trip_number": 0,
+    "trip_description": "Cikautxo RO",
+    "target_locations": "Campia Turzii, RO",
+    "transport": {
+      "mode": "Company Car",
+      "vehicle_registration": "3BF 3073"
+    }
+  },
+  "bank_rates": {
+    "effective_date": "0616",
+    "currencies": [
+      {
+        "code": "CZK",
+        "exchange_rate": 1
+      },
+      {
+        "code": "EUR",
+        "exchange_rate": 24.15
+      },
+      {
+        "code": "HUF",
+        "exchange_rate": 6.911
+      },
+      {
+        "code": "RON",
+        "exchange_rate": 4.615
+      }
+    ]
+  },
+  "waypoints": {
+    "0616": [
+      {
+        "time": "1015",
+        "place": "Dolni Bojanovice",
+        "country": "CZ",
+        "meals": 0,
+        "km": 0,
+        "r_d": 0,
+        "next": "travel"
+      },
+      {
+        "time": "1045",
+        "place": "Kuty",
+        "country": "SK",
+        "meals": 0,
+        "km": 29,
+        "r_d": 0,
+        "next": "travel"
+      },
+      {
+        "time": "1200",
+        "place": "Rajka",
+        "country": "HU",
+        "meals": 0,
+        "km": 79,
+        "r_d": 0,
+        "next": "travel"
+      },
+      {
+        "time": "1720",
+        "place": "Nadlac",
+        "country": "RO",
+        "meals": 0,
+        "km": 381,
+        "r_d": 0,
+        "next": "travel"
+      },
+      {
+        "time": "2105",
+        "place": "Sebes",
+        "country": "RO",
+        "meals": 0,
+        "km": 267,
+        "r_d": 0,
+        "next": "end"
+      }
+    ],
+    "0617": [
+      {
+        "time": "0855",
+        "place": "Sebes",
+        "country": "RO",
+        "meals": 1,
+        "km": 0,
+        "r_d": 0,
+        "next": "travel"
+      },
+      {
+        "time": "1000",
+        "place": "Cikautxo RO",
+        "country": "RO",
+        "meals": 0,
+        "km": 86,
+        "r_d": 0,
+        "next": "meeting"
+      },
+      {
+        "time": "1100",
+        "place": "Cikautxo RO",
+        "country": "RO",
+        "meals": 0,
+        "km": 0,
+        "r_d": 0,
+        "next": "travel"
+      },
+      {
+        "time": "1805",
+        "place": "Bors",
+        "country": "HU",
+        "meals": 0,
+        "km": 240,
+        "r_d": 0,
+        "next": "travel"
+      },
+      {
+        "time": "2220",
+        "place": "Rajka",
+        "country": "SK",
+        "meals": 0,
+        "km": 408,
+        "r_d": 0,
+        "next": "travel"
+      },
+      {
+        "time": "2320",
+        "place": "Kuty",
+        "country": "CZ",
+        "meals": 0,
+        "km": 78,
+        "r_d": 0,
+        "next": "travel"
+      },
+      {
+        "time": "2340",
+        "place": "Dolni Bojanovice",
+        "country": "CZ",
+        "meals": 0,
+        "km": 29,
+        "r_d": 0,
+        "next": "endtrip"
+      }
+    ]
+  },
+  "bills": []
+}

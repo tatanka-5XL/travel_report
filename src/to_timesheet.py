@@ -6,8 +6,8 @@ Description: Parses waypoints in travel report json input and fills in relevant 
 
 Author: Tatanka5XL
 Created: 2026-01-29
-Last Modified: 2026-02-03
-Version: 0.4 - added R&D minutes and overall R&D percent calculations
+Last Modified: 2026-05-20
+Version: 0.5 - cleared timesheet template
 License: Proprietary
 """
 
