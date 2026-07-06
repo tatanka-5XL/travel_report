@@ -20,11 +20,11 @@
           "time_hours": 13.25,
           "band": "12_to_18",
           "meals": 0,
-          "base": 29.97,
-          "base_czk": 723.78,
+          "base": 30.0,
+          "base_czk": 724.5,
           "reduction_percent": 35.0,
-          "amount": 29.97,
-          "amount_czk": 723.78
+          "amount": 30.0,
+          "amount_czk": 724.5
         },
         {
           "country": "SK",
@@ -54,7 +54,7 @@
         }
       ],
       "comment": "CZ 0.50h | RO 13.25h",
-      "total_perdiem_czk": 723.78
+      "total_perdiem_czk": 724.5
     },
     {
       "date": "17/06",
@@ -115,8 +115,8 @@
   ],
   "totals": {
     "total_perdiems_cz": 0.0,
-    "total_perdiems_foreign": 1538.84,
-    "total_pocket_money": 724.21,
-    "total_to_be_paid": 2263.05
+    "total_perdiems_foreign": 1539.56,
+    "total_pocket_money": 724.5,
+    "total_to_be_paid": 2264.06
   }
 }

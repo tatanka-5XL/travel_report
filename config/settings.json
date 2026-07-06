@@ -30,8 +30,8 @@
             "USA_usd": 70
         },
         "per_diems_percents": {
-            "1_to_12": 33.3,
-            "12_to_18": 66.6,
+            "1_to_12": 33.333,
+            "12_to_18": 66.667,
             "over_18": 100
         },
         "lowering_percents_per_meal": {

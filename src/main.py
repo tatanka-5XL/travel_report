@@ -6,8 +6,8 @@ Description: Parses waypoints in travel report json input and calculates segment
 
 Author: Tatanka5XL
 Created: 2025-12-23
-Last Modified: 2026-05-20
-Version: 0.7 Improved functionality - travelling over midnight
+Last Modified: 2026-07-06
+Version: 0.8 Improved functionality - corrected generating arrivals
 License: Proprietary
 """
 
@@ -611,7 +611,7 @@ def fill_waypoints_into_route(ws, waypoints: dict, start_row=11):
         ws.cell(row=row, column=1, value=first["country"])                     # Country
         ws.cell(row=row, column=2, value=first["place"])                     # Place
         if overnight_travel:
-            if first["next"] == "hotel":
+            if first["next"] in ["hotel", "end", "endtrip"]:
                 ws.cell(row=row, column=3, value="Příjezd")
             elif first["next"] == "travel":
                 ws.cell(row=row, column=3, value="Přechod hr.")
@@ -643,7 +643,7 @@ def fill_waypoints_into_route(ws, waypoints: dict, start_row=11):
         )
         
 
-        if last["next"] == "hotel":
+        if last["next"] in ["hotel", "end", "endtrip"]:
             ws.cell(row=row, column=1, value=last["country"])
             ws.cell(row=row, column=2, value=last["place"])
             ws.cell(row=row, column=3, value="Příjezd")
