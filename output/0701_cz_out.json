@@ -1,0 +1,27 @@
+{
+  "days": [
+    {
+      "date": "14/07",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 3.75,
+          "band": "under_5",
+          "meals": 0,
+          "base": 0.0,
+          "reduction_percent": null,
+          "amount": 0.0
+        }
+      ],
+      "comment": "CZ 3.75h",
+      "total_perdiem_czk": 0.0
+    }
+  ],
+  "totals": {
+    "total_perdiems_cz": 0.0,
+    "total_perdiems_foreign": 0,
+    "total_pocket_money": 0.0,
+    "total_to_be_paid": 0.0
+  }
+}

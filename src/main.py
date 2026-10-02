@@ -80,6 +80,65 @@ def mmdd_to_ddmm(mmdd: str) -> str:
 # Build trip days from waypoints (with midnight rules)
 # =========================
 
+def get_meals_by_country(waypoints: dict, mmdd: str) -> dict:
+    """
+    Assign meals to countries.
+
+    Rules:
+    - Normally, a meal belongs to the country BEFORE the waypoint.
+    - If this is the first waypoint after an 'end', it represents a new
+      departure and the meal belongs to the current waypoint's country.
+    - Travel can continue across midnight, so the previous waypoint may
+      be on the previous calendar day.
+    """
+
+    day_keys = sorted(waypoints.keys(), key=int)
+    day_index = day_keys.index(mmdd)
+    day_points = waypoints[mmdd]
+
+    meals_by_country = {}
+
+    for i, wp in enumerate(day_points):
+
+        meals = int(wp.get("meals", 0) or 0)
+        if meals == 0:
+            continue
+
+        # Find previous waypoint, including previous calendar day
+        if i > 0:
+            prev_wp = day_points[i - 1]
+
+        elif day_index > 0:
+            prev_day = waypoints[day_keys[day_index - 1]]
+            prev_wp = prev_day[-1] if prev_day else None
+
+        else:
+            prev_wp = None
+
+        # First ever waypoint of trip
+        if prev_wp is None:
+            country = wp["country"]
+
+        # Previous waypoint ended that day's travel / hotel stay.
+        # Current waypoint is therefore a NEW departure.
+        elif prev_wp.get("next") == "end":
+            country = wp["country"]
+
+        # Otherwise travel is continuous, including across midnight.
+        # Meal belongs to country BEFORE current waypoint.
+        else:
+            country = prev_wp["country"]
+
+        country = (country or "").strip().upper()
+
+        if country:
+            meals_by_country[country] = (
+                meals_by_country.get(country, 0) + meals
+            )
+
+    return meals_by_country
+
+
 def build_days(json_data: dict) -> list[dict]:
     year = str(json_data["year"])
     wps_by_day = json_data["waypoints"]
@@ -105,12 +164,16 @@ def build_days(json_data: dict) -> list[dict]:
             return to_isodatetime(year, mmdd, str(wp["time"]))
 
         # meals
-        for wp in wps:
-            c = (wp.get("country") or "").strip().upper()
-            if not c:
-                continue
-            agg.setdefault(c, {"country": c, "time_hours": 0.0, "meals": 0})
-            agg[c]["meals"] += int(wp.get("meals", 0) or 0)
+        meals_by_country = get_meals_by_country(wps_by_day, mmdd)
+
+        for c, meals in meals_by_country.items():
+            agg.setdefault(c, {
+                "country": c,
+                "time_hours": 0.0,
+                "meals": 0
+            })
+
+            agg[c]["meals"] += meals
 
         # start-of-day extension (middle + last days): 00:00 -> first waypoint
         if mmdd != first_day:
@@ -596,10 +659,7 @@ def fill_waypoints_into_route(ws, waypoints: dict, start_row=11):
         date_str = f"{mmdd[2:]}/{mmdd[:2]}"  # DD/MM
 
         # meals per country (for Arrival row)
-        meals_by_country = {}
-        for wp in day_points:
-            c = wp["country"]
-            meals_by_country[c] = meals_by_country.get(c, 0) + int(wp.get("meals", 0))
+        meals_by_country = get_meals_by_country(waypoints, mmdd)
 
         def fmt_time(t):
             return f"{t[:2]}:{t[2:]}"

@@ -1,0 +1,90 @@
+{
+  "days": [
+    {
+      "date": "12/06",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 7.33,
+          "band": "5_to_12",
+          "meals": 0,
+          "base": 185.0,
+          "reduction_percent": 70.0,
+          "amount": 185.0
+        },
+        {
+          "country": "UK",
+          "currency": "GBP",
+          "exch_rate": 28.0,
+          "time_hours": 7.17,
+          "band": "1_to_12",
+          "meals": 0,
+          "base": 15.0,
+          "base_czk": 420.0,
+          "reduction_percent": 70.0,
+          "amount": 15.0,
+          "amount_czk": 420.0
+        }
+      ],
+      "comment": "CZ 7.33h | UK 7.17h",
+      "total_perdiem_czk": 605.0
+    },
+    {
+      "date": "13/06",
+      "segments": [
+        {
+          "country": "UK",
+          "currency": "GBP",
+          "exch_rate": 28.0,
+          "time_hours": 24.0,
+          "band": "over_18",
+          "meals": 3,
+          "base": 45.0,
+          "base_czk": 1260.0,
+          "reduction_percent": 25.0,
+          "amount": 11.25,
+          "amount_czk": 315.0
+        }
+      ],
+      "comment": "UK 24.00h (3 jídla: -25.0%)",
+      "total_perdiem_czk": 315.0
+    },
+    {
+      "date": "14/06",
+      "segments": [
+        {
+          "country": "CZ",
+          "currency": "CZK",
+          "time_hours": 5.25,
+          "band": "5_to_12",
+          "meals": 0,
+          "base": 185.0,
+          "reduction_percent": 70.0,
+          "amount": 185.0
+        },
+        {
+          "country": "UK",
+          "currency": "GBP",
+          "exch_rate": 28.0,
+          "time_hours": 9.75,
+          "band": "1_to_12",
+          "meals": 0,
+          "base": 15.0,
+          "base_czk": 420.0,
+          "reduction_percent": 70.0,
+          "amount": 15.0,
+          "amount_czk": 420.0
+        }
+      ],
+      "comment": "CZ 5.25h | UK 9.75h",
+      "total_perdiem_czk": 605.0
+    }
+  ],
+  "totals": {
+    "total_perdiems_cz": 370.0,
+    "total_perdiems_foreign": 1155.0,
+    "total_pocket_money": 840.0,
+    "total_to_be_paid": 2365.0
+  }
+}
